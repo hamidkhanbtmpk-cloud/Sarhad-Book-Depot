@@ -1,0 +1,98 @@
+/* =========================================
+   1. GLOBAL STYLES (For All Pages)
+   ========================================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fb;
+    overflow-x: hidden; /* Necessary for sidebar animation */
+}
+
+/* =========================================
+   2. ADMIN DASHBOARD STYLES (Sidebar & Cards)
+   ========================================= */
+
+/* Sidebar Color (Dark Blue) */
+#sidebar-wrapper {
+    min-width: 260px; 
+    max-width: 260px; 
+    min-height: 100vh;
+    background-color: #103554; /* Sarhad Theme Blue */
+    color: white;
+}
+
+/* Sidebar Links */
+.list-group-item { 
+    border: none; 
+    padding: 15px 25px; 
+    font-size: 15px; 
+    background-color: transparent;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s;
+}
+
+.list-group-item:hover { 
+    background-color: rgba(255, 255, 255, 0.1) !important; 
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Active Link (Highlight) */
+.active-link {
+    background-color: rgba(255, 255, 255, 0.15) !important; 
+    border-left: 4px solid #f0ad4e; /* Yellow accent */
+    color: #fff !important;
+    font-weight: bold;
+}
+
+/* Dashboard Summary Cards (Colored Borders) */
+.border-start-green { border-left: 5px solid #2ecc71 !important; border-radius: 5px; }
+.border-start-orange { border-left: 5px solid #f0ad4e !important; border-radius: 5px; }
+.border-start-red { border-left: 5px solid #d9534f !important; border-radius: 5px; }
+.border-start-blue { border-left: 5px solid #0f4c81 !important; border-radius: 5px; }
+
+
+/* =========================================
+   3. CUSTOMER SHOP STYLES (index.html)
+   ========================================= */
+
+/* Shop Navbar Color */
+.navbar-custom {
+    background: #103554 !important; /* Sarhad Theme */
+}
+
+/* Product Cards (Shop Page) */
+.product-card {
+    transition: transform 0.3s ease;
+    border: none;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Shop Card Image Fix */
+.shop-card-img {
+    height: 200px;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+/* Sidebar toggle behavior: when body has this class, hide sidebar on desktop */
+body.sb-sidenav-toggled #sidebar-wrapper {
+    margin-left: -260px !important;
+}
+body.sb-sidenav-toggled #page-content-wrapper {
+    margin-left: 0 !important;
+}
+
+/* Ensure page content sits correctly when sidebar present */
+#page-content-wrapper {
+    margin-left: 260px;
+    transition: margin 0.25s ease-out;
+}

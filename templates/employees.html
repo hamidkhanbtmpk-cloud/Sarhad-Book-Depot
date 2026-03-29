@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Employee Management - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* --- SHARED CSS (Consistent Theme) --- */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Sidebar Color (Royal Blue) */
+        .bg-custom-sidebar {
+            background-color: #103554; 
+        }
+
+        #wrapper {
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        #sidebar-wrapper {
+            min-height: 100vh;
+            margin-left: 0;
+            transition: margin 0.25s ease-out;
+            width: 16rem;
+            position: fixed;
+            z-index: 1000;
+        }
+
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: 16rem;
+            transition: margin 0.25s ease-out;
+        }
+
+        body.sb-sidenav-toggled #sidebar-wrapper {
+            margin-left: -16rem;
+        }
+
+        body.sb-sidenav-toggled #page-content-wrapper {
+            margin-left: 0;
+        }
+
+        /* Sidebar Links */
+        .sidebar-link {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.2);
+            border-left-color: #0d6efd; 
+            color: #fff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar-wrapper { margin-left: -16rem; }
+            #page-content-wrapper { margin-left: 0; }
+            body.sb-sidenav-toggled #sidebar-wrapper { margin-left: 0; }
+            body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h4 class="m-0 fw-bold">Staff Management</h4>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-secondary px-3 py-2">{{ session['role'].upper() }} MODE</span>
+                <a href="/logout" class="btn btn-danger btn-sm text-white rounded-pill px-3">Logout</a>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            
+            <div class="row align-items-center mb-4">
+                <div class="col-md-6">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-people me-2"></i> Registered Employees</h5>
+                </div>
+                <div class="col-md-6">
+                    <form method="GET" action="/admin/employees" class="d-flex shadow-sm rounded-pill overflow-hidden">
+                        <input type="text" name="search" class="form-control border-0 ps-4" placeholder="Search staff by Name or Phone..." value="{{ request.args.get('search', '') }}">
+                        <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for staff in staff_list %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card shadow-sm border-0 h-100 rounded-3">
+                        <div class="card-body text-center p-4">
+                            <div class="position-relative d-inline-block mb-3">
+                                {% if staff.profile_pic %}
+                                    <img src="{{ url_for('static', filename='uploads/' + staff.profile_pic) }}" class="rounded-circle border border-3 border-light shadow-sm" width="100" height="100" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white mx-auto shadow-sm" style="width:100px; height:100px; font-size: 2rem;">
+                                        {{ staff.full_name[0] }}
+                                    </div>
+                                {% endif %}
+                                <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-2"></span>
+                            </div>
+                            
+                            <h5 class="fw-bold mb-1">{{ staff.full_name }}</h5>
+                            <p class="text-muted small mb-2">{{ staff.job_title or 'Staff Member' }}</p>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-light text-dark border"><i class="bi bi-phone me-1"></i> {{ staff.phone }}</span>
+                            </div>
+                            
+                            <div class="bg-light rounded p-2 mb-3">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; font-weight: 700;">Current Salary</small>
+                                <span class="fw-bold text-success">Rs. {{ "{:,.0f}".format(staff.salary) }}</span>
+                            </div>
+
+                            <div class="d-flex gap-2 justify-content-center border-top pt-3 mt-2">
+                                <a href="/admin/employee/edit/{{ staff.id }}" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill">
+                                    <i class="bi bi-pencil-fill me-1"></i> Edit
+                                </a>
+                                <a href="/admin/employee/delete/{{ staff.id }}" class="btn btn-outline-danger btn-sm rounded-pill" onclick="return confirm('Are you sure you want to delete this staff member? This action cannot be undone.');">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center py-5">
+                    <div class="text-muted mb-3">
+                        <i class="bi bi-person-x display-1"></i>
+                    </div>
+                    <h5>No staff members found.</h5>
+                    <a href="/admin/employees" class="btn btn-secondary btn-sm mt-2 rounded-pill px-4">Show All Staff</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sidebar Toggle
+    window.addEventListener('DOMContentLoaded', event => {
+        const sidebarToggle = document.body.querySelector('#sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', event => {
+                event.preventDefault();
+                document.body.classList.toggle('sb-sidenav-toggled');
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

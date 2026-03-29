@@ -1,0 +1,97 @@
+/* Use a modern font */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f6f9; /* Light grey background for main content */
+}
+
+/* Navbar Styling */
+.navbar-brand {
+    font-size: 1.25rem;
+    color: #343a40 !important;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Sidebar Styling */
+.bg-dark-blue {
+    background-color: #1a2a44; /* Dark blue from the image */
+}
+
+.sidebar-nav {
+    width: 260px;
+}
+
+.offcanvas-title {
+    color: #fff;
+    padding-top: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.1); /* Slight highlight */
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+/* Main Content Styling */
+main {
+    min-height: 100vh;
+}
+
+@media (min-width: 992px) {
+    main {
+        margin-left: 260px;
+    }
+    .sidebar-nav {
+        transform: none;
+        visibility: visible !important;
+        top: 56px; /* Height of navbar */
+        height: calc(100vh - 56px);
+    }
+}
+
+/* Card Styling */
+.card {
+    border-radius: 0.5rem;
+}
+
+.card-hover:hover {
+    transform: translateY(-3px);
+    transition: transform 0.3s ease;
+}
+
+/* Colored Borders for Summary Cards */
+.border-start-green {
+    border-left: 5px solid #28a745 !important;
+}
+
+.border-start-orange {
+    border-left: 5px solid #fd7e14 !important;
+}
+
+.border-start-red {
+    border-left: 5px solid #dc3545 !important;
+}
+
+.border-start-blue {
+    border-left: 5px solid #0d6efd !important;
+}
+
+/* Chart Placeholders */
+.card-header {
+    background-color: transparent;
+}

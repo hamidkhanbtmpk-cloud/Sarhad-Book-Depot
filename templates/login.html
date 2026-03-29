@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login - Sarhad Book Depot</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #103554;
+            background-image: linear-gradient(rgba(16, 53, 84, 0.85), rgba(16, 53, 84, 0.9)), 
+                              url('https://images.unsplash.com/photo-1507842217121-9e96e4430330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- FIX FOR DOUBLE EYE ICON --- */
+        /* Hide default browser password toggle */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            color: white;
+            position: relative;
+        }
+
+        .brand-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .brand-title h3 {
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .brand-title p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Inputs */
+        .form-control {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        .form-control:focus {
+            background: white;
+            box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.3);
+        }
+
+        .input-group-text {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 10px 0 0 10px;
+            color: #103554;
+        }
+        .form-control.ps-0 { border-radius: 0 10px 10px 0; }
+
+        /* Button */
+        .btn-login {
+            background: #eab308;
+            color: #103554;
+            font-weight: 700;
+            width: 100%;
+            padding: 12px;
+            border-radius: 50px;
+            border: none;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        .btn-login:hover {
+            background: #ca9a04;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3);
+        }
+
+        /* Links */
+        .links {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+        .links a {
+            color: #eab308;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .links a:hover { color: white; text-decoration: underline; }
+
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+        .back-home:hover { opacity: 1; transform: translateX(-5px); }
+
+        /* Alert Styling */
+        .alert-custom {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            font-size: 0.9rem;
+            border-radius: 10px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-home"><i class="bi bi-arrow-left me-1"></i> Back to Shop</a>
+
+    <div class="container d-flex justify-content-center">
+        <div class="login-card" data-aos="zoom-in" data-aos-duration="800">
+            
+            <div class="brand-title">
+                <div class="mb-3">
+                    <i class="bi bi-person-circle display-4 text-warning"></i>
+                </div>
+                <h3>STAFF PORTAL</h3>
+                <p>Sarhad Book Depot Management System</p>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-custom d-flex align-items-center mb-4">
+                <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
+            </div>
+            {% endif %}
+            
+            {% if success %}
+            <div class="alert alert-success d-flex align-items-center mb-4" style="border-radius: 10px;">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ success }}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                    <input type="email" name="email" class="form-control ps-0" placeholder="Email Address" required autofocus>
+                </div>
+
+                <div class="input-group mb-4">
+                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                    <input type="password" name="password" id="password" class="form-control ps-0" placeholder="Password" required>
+                    <button type="button" class="btn btn-light bg-white border-0 rounded-end" style="border-radius: 0 10px 10px 0;" onclick="togglePassword()">
+                        <i class="bi bi-eye text-muted" id="eyeIcon"></i>
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-login">Secure Login</button>
+            </form>
+
+            <div class="links">
+                <a href="/forgot_password">Forgot Password?</a>
+                <div class="divider"></div>
+                <p class="mb-0 text-white-50">New Staff Member?</p>
+                <a href="/signup" class="fw-bold text-white">Create Account</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        function togglePassword() {
+            var input = document.getElementById("password");
+            var icon = document.getElementById("eyeIcon");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+    </script>
+</body>
+</html>

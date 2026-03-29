@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        
+        #wrapper { display: flex; width: 100%; overflow-x: hidden; }
+        #page-content-wrapper { width: 100%; margin-left: 16rem; transition: margin 0.25s ease-out; }
+        
+        @media (max-width: 768px) { 
+            #page-content-wrapper { margin-left: 0; } 
+        }
+
+        .stat-card {
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white !important;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .card-blue { background: linear-gradient(45deg, #0d6efd, #0dcaf0); }
+        .card-orange { background: linear-gradient(45deg, #fd7e14, #ffc107); }
+        .card-red { background: linear-gradient(45deg, #dc3545, #ff6b6b); }
+        .card-dark { background: linear-gradient(45deg, #212529, #495057); cursor: default !important; }
+
+        .btn-action { background: white; border-radius: 50px; padding: 10px 20px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4 sticky-top">
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                    <h4 class="m-0 fw-bold">System Overview</h4>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <a href="/" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                        <i class="bi bi-shop me-2"></i> Visit Live Shop
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <a href="/admin/inventory" class="card stat-card card-blue shadow border-0 rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1 opacity-75 small fw-bold">Total Products</h6>
+                                <h2 class="fw-bold display-6 mb-0">{{ total_stock }}</h2>
+                            </div>
+                            <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <a href="/admin/online_orders" class="card stat-card card-orange shadow border-0 rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1 opacity-75 small fw-bold">New Orders</h6>
+                                <h2 class="fw-bold display-6 mb-0">{{ pending_orders }}</h2>
+                            </div>
+                            <i class="bi bi-bell-fill fs-1 opacity-50"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <a href="/admin/inventory?filter=low" class="card stat-card card-red shadow border-0 rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1 opacity-75 small fw-bold">Low Stock</h6>
+                                <h2 class="fw-bold display-6 mb-0">{{ low_stock }}</h2>
+                            </div>
+                            <i class="bi bi-exclamation-triangle-fill fs-1 opacity-50"></i>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card card-dark shadow border-0 rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1 opacity-75 small fw-bold">Current Time</h6>
+                                <h2 class="fw-bold display-6 mb-0" id="liveClock">--:--</h2>
+                                <small class="opacity-75" id="liveDate" style="font-size: 0.8rem; display: block; margin-top: 5px;">--</small>
+                            </div>
+                            <i class="bi bi-clock-history fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                        <div class="d-flex gap-3 overflow-auto justify-content-between">
+                            <a href="/admin/billing" class="btn btn-action btn-outline-primary flex-grow-1"><i class="bi bi-receipt me-2"></i> Bill</a>
+                            <a href="/admin/online_orders" class="btn btn-action btn-outline-danger flex-grow-1"><i class="bi bi-cart-check me-2"></i> Orders</a>
+                            <a href="/admin/inventory/add" class="btn btn-action btn-outline-success flex-grow-1"><i class="bi bi-plus-circle me-2"></i> Stock</a>
+                            <a href="/admin/attendance" class="btn btn-action btn-outline-warning text-dark flex-grow-1"><i class="bi bi-calendar-check me-2"></i> Attendance</a>
+                            <a href="/admin/settings" class="btn btn-action btn-outline-secondary flex-grow-1"><i class="bi bi-gear me-2"></i> Settings</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100 rounded-4">
+                        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold m-0 text-primary"><i class="bi bi-graph-up-arrow me-2"></i> Analytics</h5>
+                            
+                            <select id="chartFilter" class="form-select form-select-sm w-auto fw-bold text-dark border-secondary bg-light" onchange="updateChart()">
+                                <option value="today" selected>Today</option>
+                                <option value="daily">Last 30 Days</option>
+                                <option value="weekly">Last 12 Weeks</option>
+                                <option value="monthly">Monthly (1 Year)</option>
+                                <option value="yearly">All Time (Yearly)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="card-body" style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 rounded-4">
+                        <div class="card-header bg-white py-3 border-0">
+                            <h5 class="fw-bold m-0 text-success"><i class="bi bi-pie-chart-fill me-2"></i> Categories</h5>
+                        </div>
+                        <div class="card-body d-flex align-items-center justify-content-center" style="position: relative; height: 350px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 rounded-4">
+                        <div class="card-header bg-white py-3 border-0">
+                            <h5 class="fw-bold m-0 text-info"><i class="bi bi-star-fill me-2"></i> Top 5 Products</h5>
+                        </div>
+                        <div class="card-body" style="position: relative; height: 300px;">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 rounded-4">
+                        <div class="card-header bg-white py-3 border-0">
+                            <h5 class="fw-bold m-0 text-warning"><i class="bi bi-cart-check-fill me-2"></i> Order Status</h5>
+                        </div>
+                        <div class="card-body d-flex align-items-center justify-content-center" style="position: relative; height: 300px;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white fw-bold py-3 border-bottom">
+                            <i class="bi bi-trophy-fill text-warning me-2"></i> Top Clients / Stores
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-4">Rank</th>
+                                            <th>Client Name</th>
+                                            <th class="text-end pe-4">Total Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for store in top_stores %}
+                                        <tr>
+                                            <td class="ps-4"><span class="badge bg-secondary rounded-circle">{{ loop.index }}</span></td>
+                                            <td class="fw-bold">{{ store.client_name }}</td>
+                                            <td class="text-end fw-bold text-success pe-4">Rs. {{ "{:,.0f}".format(store.total_spent) }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="3" class="text-center text-muted py-4">No Sales Recorded Yet</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="chartData" 
+     data-catlabels='{{ (cat_labels|default([])) | tojson | safe }}' 
+     data-catcounts='{{ (cat_counts|default([])) | tojson | safe }}'>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        const clock = document.getElementById('liveClock');
+        const dateEl = document.getElementById('liveDate');
+        if(clock) clock.innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        if(dateEl) dateEl.innerText = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    let salesChartInstance = null;
+    let productsChartInstance = null;
+    let statusChartInstance = null;
+
+    function updateChart() {
+        const filterEl = document.getElementById('chartFilter');
+        if(!filterEl) return;
+        const filter = filterEl.value;
+        
+        fetch(`/api/dashboard-data?filter=${filter}`)
+            .then(response => response.json())
+            .then(data => {
+                
+                const canvas = document.getElementById('salesChart');
+                if(canvas) {
+                    const ctx = canvas.getContext('2d');
+                    if (salesChartInstance) salesChartInstance.destroy();
+
+                    let salesGradient = ctx.createLinearGradient(0, 0, 0, 350);
+                    salesGradient.addColorStop(0, 'rgba(13, 110, 253, 0.4)');
+                    salesGradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+
+                    let profitGradient = ctx.createLinearGradient(0, 0, 0, 350);
+                    profitGradient.addColorStop(0, 'rgba(25, 135, 84, 0.4)');
+                    profitGradient.addColorStop(1, 'rgba(25, 135, 84, 0.0)');
+
+                    let lossGradient = ctx.createLinearGradient(0, 0, 0, 350);
+                    lossGradient.addColorStop(0, 'rgba(220, 53, 69, 0.4)');
+                    lossGradient.addColorStop(1, 'rgba(220, 53, 69, 0.0)');
+
+                    salesChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [
+                                {
+                                    label: 'Sales (Rs)',
+                                    data: data.sales,
+                                    backgroundColor: salesGradient,
+                                    borderColor: '#0d6efd',
+                                    borderWidth: 3, 
+                                    pointRadius: 0,
+                                    pointHoverRadius: 6,
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Profit (Rs)',
+                                    data: data.profits,
+                                    backgroundColor: profitGradient,
+                                    borderColor: '#198754',
+                                    borderWidth: 3,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 6,
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Loss (Rs)',
+                                    data: data.losses,
+                                    backgroundColor: lossGradient,
+                                    borderColor: '#dc3545',
+                                    borderWidth: 3,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 6,
+                                    tension: 0.4,
+                                    fill: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false, padding: 10 }
+                            },
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, border: { dash: [4, 4] }, suggestedMax: 100 }
+                            }
+                        }
+                    });
+                }
+
+                const prodCanvas = document.getElementById('productsChart');
+                if(prodCanvas && data.products) {
+                    if (productsChartInstance) productsChartInstance.destroy();
+                    productsChartInstance = new Chart(prodCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: data.products.labels,
+                            datasets: [{
+                                label: 'Units Sold',
+                                data: data.products.data,
+                                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545'],
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                }
+
+                const statCanvas = document.getElementById('statusChart');
+                if(statCanvas && data.status) {
+                    if (statusChartInstance) statusChartInstance.destroy();
+                    statusChartInstance = new Chart(statCanvas, {
+                        type: 'polarArea',
+                        data: {
+                            labels: data.status.labels,
+                            datasets: [{
+                                data: data.status.data,
+                                backgroundColor: [
+                                    'rgba(255, 193, 7, 0.7)',
+                                    'rgba(13, 202, 240, 0.7)',
+                                    'rgba(25, 135, 84, 0.7)',
+                                    'rgba(220, 53, 69, 0.7)'
+                                ],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                    ticks: { display: false, backdropColor: 'transparent' },
+                                    pointLabels: { display: true, centerPointLabels: true, font: { size: 11 } }
+                                }
+                            },
+                            plugins: { 
+                                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } 
+                            }
+                        }
+                    });
+                }
+
+            })
+            .catch(err => console.error(err));
+    }
+
+    updateChart();
+
+    const chartDiv = document.getElementById('chartData');
+    const catCanvas = document.getElementById('categoryChart');
+    if (chartDiv && catCanvas) {
+        try {
+            const labels = JSON.parse(chartDiv.dataset.catlabels);
+            const counts = JSON.parse(chartDiv.dataset.catcounts);
+            new Chart(catCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#dc3545', '#0dcaf0', '#6f42c1'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: { 
+                    cutout: '75%', 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } } 
+                    } 
+                }
+            });
+        } catch(e) { }
+    }
+</script>
+
+</body>
+</html>

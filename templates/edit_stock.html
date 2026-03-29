@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Stock - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* --- SHARED CSS (Consistent Theme) --- */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Sidebar Color (Royal Blue) */
+        .bg-custom-sidebar {
+            background-color: #103554; 
+        }
+
+        #wrapper {
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        #sidebar-wrapper {
+            min-height: 100vh;
+            margin-left: 0;
+            transition: margin 0.25s ease-out;
+            width: 16rem;
+            position: fixed;
+            z-index: 1000;
+        }
+
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: 16rem;
+            transition: margin 0.25s ease-out;
+        }
+
+        body.sb-sidenav-toggled #sidebar-wrapper {
+            margin-left: -16rem;
+        }
+
+        body.sb-sidenav-toggled #page-content-wrapper {
+            margin-left: 0;
+        }
+
+        /* Sidebar Links */
+        .sidebar-link {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.2);
+            border-left-color: #0d6efd; 
+            color: #fff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar-wrapper { margin-left: -16rem; }
+            #page-content-wrapper { margin-left: 0; }
+            body.sb-sidenav-toggled #sidebar-wrapper { margin-left: 0; }
+            body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    <div class="bg-custom-sidebar text-white" id="sidebar-wrapper">
+        <div class="sidebar-heading p-4">
+            <span class="fw-bold d-block h5 mb-0">SARHAD BOOK DEPOT</span>
+            <span class="text-warning fw-bold small">BATTAGRAM</span>
+        </div>
+        <div class="list-group list-group-flush mt-2">
+            <a href="/admin/dashboard" class="sidebar-link">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+            <a href="/admin/inventory" class="sidebar-link active">
+                <i class="bi bi-box-seam me-2"></i> Inventory
+            </a>
+            <a href="/admin/billing" class="sidebar-link">
+                <i class="bi bi-receipt me-2"></i> Billing / POS
+            </a>
+            <a href="/admin/sales" class="sidebar-link">
+                <i class="bi bi-clock-history me-2"></i> Sales History
+            </a>
+            <a href="/admin/employees" class="sidebar-link">
+                <i class="bi bi-people-fill me-2"></i> Staff List
+            </a>
+            <a href="/admin/attendance" class="sidebar-link">
+                <i class="bi bi-calendar-check me-2"></i> Attendance
+            </a>
+            <a href="/admin/settings" class="sidebar-link">
+                <i class="bi bi-gear-fill me-2"></i> Settings
+            </a>
+        </div>
+    </div>
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h4 class="m-0 fw-bold">Edit Product</h4>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm text-white rounded-pill px-3">Logout</a>
+        </nav>
+
+        <div class="container px-4">
+            <div class="card border-0 shadow-sm rounded-3" style="max-width: 700px; margin: auto;">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i> Update Product Details</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Barcode / ISBN</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-upc-scan"></i></span>
+                                <input type="text" name="barcode" class="form-control" value="{{ product.barcode or '' }}" placeholder="Scan or enter barcode">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Product Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Category</label>
+                            <select name="category" class="form-select" required>
+                                <option value="Stationery" {% if product.category == 'Stationery' %}selected{% endif %}>Stationery</option>
+                                <option value="Books" {% if product.category == 'Books' %}selected{% endif %}>Books</option>
+                                <option value="Uniforms" {% if product.category == 'Uniforms' %}selected{% endif %}>Uniforms</option>
+                                <option value="Gifts" {% if product.category == 'Gifts' %}selected{% endif %}>Gifts</option>
+                                <option value="Others" {% if product.category == 'Others' %}selected{% endif %}>Others</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">Cost Price (Purchase)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rs.</span>
+                                    <input type="number" step="0.01" name="cost_price" class="form-control" value="{{ product.cost_price }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">Selling Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rs.</span>
+                                    <input type="number" step="0.01" name="price" class="form-control" value="{{ product.price }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">Quantity</label>
+                                <input type="number" name="quantity" class="form-control" value="{{ product.quantity }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">Tax Rate (%)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" name="tax_rate" class="form-control" value="{{ product.tax_rate }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text small">Enter 0 if no tax applies.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold flex-grow-1 rounded-pill">
+                                <i class="bi bi-save me-1"></i> Update Product
+                            </button>
+                            <a href="/admin/inventory" class="btn btn-secondary rounded-pill px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sidebar Toggle Script
+    window.addEventListener('DOMContentLoaded', event => {
+        const sidebarToggle = document.body.querySelector('#sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', event => {
+                event.preventDefault();
+                document.body.classList.toggle('sb-sidenav-toggled');
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

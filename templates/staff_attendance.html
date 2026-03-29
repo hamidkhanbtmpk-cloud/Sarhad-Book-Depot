@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Attendance & Requests - Staff Portal</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
+        
+        /* Navbar */
+        .navbar-custom { background-color: #103554; padding: 15px 0; }
+        
+        /* Stats Cards */
+        .stat-card {
+            background: white; border: none; border-radius: 15px; padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .icon-box { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+        /* Main Section */
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); background: white; overflow: hidden; height: 100%; }
+        .card-header-custom { background-color: #fff; border-bottom: 1px solid #eee; padding: 20px; font-weight: 700; color: #103554; }
+
+        /* Status Badge */
+        .status-badge { padding: 5px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d1e7dd; color: #0f5132; }
+        .badge-rejected { background: #f8d7da; color: #842029; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark navbar-custom mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/staff/tasks" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+                <span class="navbar-brand mb-0 h1">My Attendance & Requests</span>
+            </div>
+            <div class="text-white small d-none d-md-block">
+                {{ today.strftime('%d %B %Y') }}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show text-center" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h5 class="fw-bold mb-3 text-secondary">This Month's Summary</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div><h6 class="text-muted small fw-bold mb-1">Present</h6><h3 class="mb-0 fw-bold text-success">{{ stats.present }}</h3></div>
+                    <div class="icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-check-lg"></i></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div><h6 class="text-muted small fw-bold mb-1">Late</h6><h3 class="mb-0 fw-bold text-warning">{{ stats.late }}</h3></div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-clock-history"></i></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div><h6 class="text-muted small fw-bold mb-1">Absent</h6><h3 class="mb-0 fw-bold text-danger">{{ stats.absent }}</h3></div>
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger"><i class="bi bi-x-circle"></i></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div><h6 class="text-muted small fw-bold mb-1">Leaves</h6><h3 class="mb-0 fw-bold text-primary">{{ stats.leaves }}</h3></div>
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar-event"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-5">
+                <div class="card card-custom h-100">
+                    <div class="card-header-custom"><i class="bi bi-send-check me-2"></i> Today's Attendance Request</div>
+                    <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+                        
+                        <h1 class="display-4 fw-bold text-dark mb-1" id="clock">00:00:00</h1>
+                        <p class="text-muted mb-4">{{ today.strftime('%A, %d %b %Y') }}</p>
+
+                        {% if today_record %}
+                            <div class="alert {% if today_record.is_approved %}alert-success{% else %}alert-warning{% endif %}">
+                                {% if today_record.is_approved %}
+                                    <i class="bi bi-check-circle-fill me-1"></i> Attendance <strong>Approved</strong> as {{ today_record.status }}
+                                {% else %}
+                                    <i class="bi bi-hourglass-split me-1"></i> Attendance Request <strong>Pending</strong>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <form method="POST">
+                                <input type="hidden" name="action" value="mark_today">
+                                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm py-3 fw-bold">
+                                    <i class="bi bi-hand-index-thumb me-2"></i> SEND ATTENDANCE REQUEST
+                                </button>
+                                <p class="small text-muted mt-3 mb-0">Click to let Admin know you are here.</p>
+                            </form>
+                        {% endif %}
+
+                        <hr class="my-4">
+
+                        <h6 class="text-start fw-bold mb-3">Other Requests (Leave/Correction)</h6>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="other_request">
+                            <div class="mb-2">
+                                <select name="req_type" class="form-select form-select-sm rounded-3">
+                                    <option value="Leave">Apply for Leave</option>
+                                    <option value="Correction">Fix Attendance Date</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <input type="date" name="req_date" class="form-control form-control-sm rounded-3" required>
+                            </div>
+                            <div class="mb-2">
+                                <textarea name="reason" class="form-control form-control-sm rounded-3" rows="2" placeholder="Reason (e.g., Sick leave)" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100 rounded-pill">Submit Request</button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card card-custom h-100">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-table me-2"></i> Monthly Detail</span>
+                        <span class="badge bg-light text-dark border">Recent 30 Days</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Admin Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in history %}
+                                <tr>
+                                    <td class="ps-4 fw-bold text-secondary">{{ rec.date.strftime('%d %b') }}</td>
+                                    <td class="text-primary fw-bold">
+                                        {{ rec.clock_in.strftime('%I:%M %p') if rec.clock_in else '-' }}
+                                    </td>
+                                    <td>
+                                        {% if rec.status == 'Present' %} <span class="text-success fw-bold">Present</span>
+                                        {% elif rec.status == 'Late' %} <span class="text-warning fw-bold">Late</span>
+                                        {% else %} <span class="text-danger fw-bold">Absent</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rec.is_approved %}
+                                            <span class="status-badge badge-approved">Verified</span>
+                                        {% else %}
+                                            <span class="status-badge badge-pending">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">No records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

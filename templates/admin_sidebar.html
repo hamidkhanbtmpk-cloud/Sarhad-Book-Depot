@@ -1,0 +1,186 @@
+<div class="bg-custom-sidebar text-white d-flex flex-column" id="sidebar-wrapper">
+    
+    <div class="sidebar-heading p-4 text-center border-bottom border-secondary border-opacity-25 flex-shrink-0">
+        <span class="fw-bold d-block h4 mb-0"><i class="bi bi-book-half"></i> SARHAD</span>
+        <span class="text-warning fw-bold small letter-spacing-1">BOOK DEPOT</span>
+    </div>
+    
+    <div class="list-group list-group-flush mt-3 flex-grow-1 overflow-auto sidebar-scroll">
+        {% if session['role'] == 'admin' %}
+        
+        <a href="/admin/dashboard" class="sidebar-link {% if request.endpoint == 'dashboard' %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+        
+        <a href="#ordersSubmenu" data-bs-toggle="collapse" class="sidebar-link d-flex justify-content-between align-items-center {% if 'online_orders' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <span><i class="bi bi-cart3 me-2"></i> Orders</span>
+            {% if total_orders_badge > 0 %}
+                <span class="badge bg-danger rounded-pill">{{ total_orders_badge }}</span>
+            {% else %}
+                <i class="bi bi-chevron-down small"></i>
+            {% endif %}
+        </a>
+        
+        <div class="collapse {% if 'online_orders' in request.endpoint %}show{% endif %}" id="ordersSubmenu" style="background: rgba(0,0,0,0.2);">
+            <a href="{{ url_for('online_orders', search='Pending') }}" class="sidebar-link ps-5 d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                <span>New Requests</span>
+                {% if new_req > 0 %}<span class="badge bg-warning text-dark rounded-pill">{{ new_req }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('online_orders', search='Processing') }}" class="sidebar-link ps-5 d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                <span>Staff Working</span>
+                {% if working > 0 %}<span class="badge bg-info text-dark rounded-pill">{{ working }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('online_orders', search='Packed') }}" class="sidebar-link ps-5 d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                <span>Ready to Bill</span>
+                {% if ready_bill > 0 %}<span class="badge bg-success rounded-pill">{{ ready_bill }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('online_orders', search='Completed') }}" onclick="markHistorySeen()" class="sidebar-link ps-5 d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                <span>History</span>
+                {% if history_unseen > 0 %}<span id="histBadge" class="badge bg-secondary rounded-pill">{{ history_unseen }}</span>{% endif %}
+            </a>
+        </div>
+        
+        {% endif %}
+
+        <a href="/admin/inventory" class="sidebar-link {% if 'inventory' in request.endpoint or 'stock' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-box-seam me-2"></i> Inventory
+        </a>
+        
+        <a href="/admin/billing" class="sidebar-link {% if 'billing' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-receipt me-2"></i> Billing / POS
+        </a>
+        
+        {% if session['role'] == 'admin' %}
+        <a href="/admin/sales" class="sidebar-link {% if 'sales' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-clock-history me-2"></i> Sales History
+        </a>
+        
+        <a href="/admin/employees" class="sidebar-link {% if 'employee' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-people-fill me-2"></i> Staff List
+        </a>
+        
+        <a href="/admin/attendance" class="sidebar-link {% if 'attendance' in request.endpoint or 'payroll' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-calendar-check me-2"></i> Attendance
+        </a>
+
+        <a href="/admin/settings" class="sidebar-link {% if 'settings' in request.endpoint %}fw-bold text-warning bg-white bg-opacity-10{% endif %}">
+            <i class="bi bi-gear-fill me-2"></i> Settings
+        </a>
+        {% endif %}
+        
+        <div style="height: 20px;"></div>
+    </div>
+
+    <div class="p-3 mt-auto border-top border-secondary border-opacity-25 flex-shrink-0">
+        <div class="bg-black bg-opacity-25 rounded-4 p-3 d-flex align-items-center justify-content-between shadow-sm">
+            <div class="d-flex align-items-center overflow-hidden">
+                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold me-2" 
+                     style="width: 35px; height: 35px; min-width: 35px;">
+                    {{ session.get('user', 'A')[0] | upper }}
+                </div>
+                <div class="text-truncate">
+                    <small class="text-white-50 d-block" style="font-size: 10px; line-height: 1;">Signed in as</small>
+                    <span class="fw-bold text-white small">{{ session.get('user', 'Admin') | title }}</span>
+                </div>
+            </div>
+            
+            <a href="/logout" class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center shadow logout-btn" 
+               style="width: 32px; height: 32px;" title="Logout">
+                <i class="bi bi-power"></i>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* --- FIXED LAYOUT CSS --- */
+    #wrapper { display: flex; width: 100%; overflow-x: hidden; }
+    
+    #sidebar-wrapper { 
+        height: 100vh;          /* FIX: Exact height of screen */
+        max-height: 100vh;      /* FIX: Prevent growing beyond screen */
+        margin-left: 0; 
+        width: 16rem; 
+        position: fixed; 
+        z-index: 1000; 
+        transition: margin 0.25s ease-out;
+        overflow: hidden;       /* FIX: Hide outer scrollbar */
+    }
+    
+    #page-content-wrapper { 
+        width: 100%; 
+        margin-left: 16rem; 
+        transition: margin 0.25s ease-out; 
+    }
+    
+    /* Toggle States */
+    body.sb-sidenav-toggled #sidebar-wrapper { margin-left: -16rem; }
+    body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+    
+    /* Mobile View */
+    @media (max-width: 768px) {
+        #sidebar-wrapper { margin-left: -16rem; }
+        #page-content-wrapper { margin-left: 0; }
+        body.sb-sidenav-toggled #sidebar-wrapper { margin-left: 0; }
+        body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+    }
+
+    /* --- Sidebar Styling --- */
+    .bg-custom-sidebar { background-color: #103554; }
+    .sidebar-heading { padding: 1.5rem 1.5rem; }
+    .sidebar-link { color: rgba(255,255,255,0.85); text-decoration: none; padding: 12px 20px; display: block; border-left: 4px solid transparent; transition: 0.2s; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .sidebar-link.active { background: rgba(255,255,255,0.2); color: #fff; font-weight: bold; border-left-color: #0d6efd; }
+    
+    .logout-btn { transition: transform 0.2s; }
+    .logout-btn:hover { transform: scale(1.1); background-color: #dc3545; }
+    
+    /* --- SLIM SCROLLBAR CSS --- */
+    .sidebar-scroll {
+        overflow-y: auto;       /* Enable vertical scroll */
+        scrollbar-width: thin;  /* Firefox slim scroll */
+        scrollbar-color: rgba(255, 255, 255, 0.3) transparent; 
+    }
+
+    /* Webkit (Chrome, Safari, Edge) */
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 5px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+</style>
+
+<script>
+    window.addEventListener('DOMContentLoaded', event => {
+        const sidebarToggle = document.body.querySelector('#sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                document.body.classList.toggle('sb-sidenav-toggled');
+            });
+        }
+    });
+
+    function markHistorySeen() {
+        if(document.getElementById('histBadge')) {
+            fetch('/admin/mark_history_seen')
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const badge = document.getElementById('histBadge');
+                    if(badge) badge.style.display = 'none';
+                }
+            });
+        }
+    }
+</script>

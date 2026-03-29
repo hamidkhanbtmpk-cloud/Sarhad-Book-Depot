@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Registration - Sarhad Book Depot</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background-color: #103554;
+            background-image: linear-gradient(rgba(16, 53, 84, 0.85), rgba(16, 53, 84, 0.9)), 
+                              url('https://images.unsplash.com/photo-1507842217121-9e96e4430330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* Hide browser default password reveal button */
+        input::-ms-reveal,
+        input::-ms-clear { display: none; }
+
+        .signup-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            color: white;
+            position: relative;
+        }
+
+        .brand-title { text-align: center; margin-bottom: 30px; }
+        .brand-title h3 { font-weight: 700; letter-spacing: 1px; }
+        .brand-title p { font-size: 0.9rem; opacity: 0.8; }
+
+        .form-label { font-size: 0.85rem; font-weight: 500; margin-left: 5px; opacity: 0.9; }
+        .form-control {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        .form-control:focus {
+            background: white;
+            box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.3);
+        }
+
+        .btn-register {
+            background: #eab308;
+            color: #103554;
+            font-weight: 700;
+            width: 100%;
+            padding: 12px;
+            border-radius: 50px;
+            border: none;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        .btn-register:hover {
+            background: #ca9a04;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3);
+        }
+
+        .back-link {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+        .back-link:hover { opacity: 1; transform: translateX(-5px); }
+
+        .alert-custom {
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .back-link { position: relative; top: 0; left: 0; display: block; margin-bottom: 20px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/login" class="back-link d-none d-md-block"><i class="bi bi-arrow-left me-1"></i> Login</a>
+
+    <div class="signup-card" data-aos="zoom-in" data-aos-duration="800">
+        
+        <div class="d-md-none text-center mb-3">
+            <a href="/login" class="text-white text-decoration-none small"><i class="bi bi-arrow-left"></i> Back to Login</a>
+        </div>
+
+        <div class="brand-title">
+            <div class="mb-3"><i class="bi bi-person-plus-fill display-4 text-warning"></i></div>
+            <h3>JOIN TEAM</h3>
+            <p>Staff Registration Portal</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-custom d-flex align-items-center mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" autocomplete="off">
+            <div class="row g-3">
+                
+                <div class="col-12">
+                    <label class="form-label text-warning fw-bold"><i class="bi bi-shield-lock me-1"></i> Shop Security Code</label>
+                    <div class="input-group">
+                        <input type="password" name="shop_code" id="shop_code" class="form-control" placeholder="Enter Code" style="border-radius: 10px 0 0 10px;" required autocomplete="new-password">
+                        <button type="button" class="btn btn-light bg-white border-0" style="border-radius: 0 10px 10px 0;" onclick="toggleSecurityCode()">
+                            <i class="bi bi-eye text-muted" id="eyeIconSecurity"></i>
+                        </button>
+                    </div>
+                    <small class="text-white-50 ms-1" style="font-size: 0.75rem;">
+                        * Please ask the Shop Owner/Admin for this security code to register.
+                    </small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" class="form-control" required autocomplete="off">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required autocomplete="off">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-control" required autocomplete="off">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">CNIC (Unique)</label>
+                    <input type="text" name="cnic" id="cnic" class="form-control" placeholder="xxxxx-xxxxxxx-x" maxlength="15" required autocomplete="off">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Password (8+ chars)</label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="password" class="form-control" minlength="8" style="border-radius: 10px 0 0 10px;" required autocomplete="new-password">
+                        <button type="button" class="btn btn-light bg-white border-0" style="border-radius: 0 10px 10px 0;" onclick="togglePassword()">
+                            <i class="bi bi-eye text-muted" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" name="dob" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Profile Picture</label>
+                    <input type="file" name="profile_pic" class="form-control" accept="image/*">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Address</label>
+                    <textarea name="address" class="form-control" rows="2" required autocomplete="off"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">Register Account</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="mb-0 text-white-50 small">Already have an account?</p>
+            <a href="/login" class="text-warning text-decoration-none fw-bold">Login Here</a>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Toggle Main Password
+        function togglePassword() {
+            var input = document.getElementById("password");
+            var icon = document.getElementById("eyeIcon");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+
+        // Toggle Security Code
+        function toggleSecurityCode() {
+            var input = document.getElementById("shop_code");
+            var icon = document.getElementById("eyeIconSecurity");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+
+        // Auto-Format CNIC with Dashes
+        document.getElementById('cnic').addEventListener('input', function (e) {
+            var x = e.target.value.replace(/\D/g, '').match(/(\d{0,5})(\d{0,7})(\d{0,1})/);
+            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+        });
+    </script>
+</body>
+</html>

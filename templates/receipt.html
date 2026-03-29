@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt #{{ invoice_id }}</title>
+    <style>
+        body { font-family: 'Courier New', monospace; font-size: 14px; margin: 0; padding: 20px; background: #eee; }
+        
+        .receipt-container { 
+            width: 300px; /* Thermal Printer Width */
+            margin: auto; 
+            background: white; 
+            padding: 15px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        
+        .text-center { text-align: center; }
+        .text-end { text-align: right; }
+        .bold { font-weight: bold; }
+        
+        .header { margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .shop-name { font-size: 18px; font-weight: bold; text-transform: uppercase; }
+        
+        table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+        th { text-align: left; border-bottom: 1px solid #000; font-size: 12px; }
+        td { padding: 5px 0; }
+        
+        .total-section { border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .receipt-container { box-shadow: none; width: 100%; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        <div class="header text-center">
+            <div class="shop-name">SARHAD BOOK DEPOT</div>
+            <div>Battagram, KPK</div>
+            <div style="font-size: 12px;">Ph: 0997-310304</div>
+        </div>
+
+        <div style="font-size: 12px;">
+            <div><strong>Inv #:</strong> {{ invoice.id }}</div>
+            <div><strong>Date:</strong> {{ date }}</div>
+            <div><strong>Time:</strong> {{ time }}</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="50%">Item</th>
+                    <th width="20%" class="text-center">Qty</th>
+                    <th width="30%" class="text-end">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-end">{{ "{:,.0f}".format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div style="display: flex; justify-content: space-between;">
+                <span>Sub Total:</span>
+                <span>{{ "{:,.0f}".format(sub_total) }}</span>
+            </div>
+            {% if invoice.total_tax > 0 %}
+            <div style="display: flex; justify-content: space-between;">
+                <span>Tax:</span>
+                <span>{{ "{:,.0f}".format(invoice.total_tax) }}</span>
+            </div>
+            {% endif %}
+            <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 16px;" class="bold">
+                <span>TOTAL:</span>
+                <span>Rs. {{ "{:,.0f}".format(invoice.total_amount) }}</span>
+            </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 20px; font-size: 12px;">
+            *** Thank You ***<br>
+            Software by Hamid & Huzaifa
+        </div>
+
+        <div class="text-center no-print" style="margin-top: 15px;">
+            <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">Print Receipt</button>
+        </div>
+    </div>
+
+</body>
+</html>

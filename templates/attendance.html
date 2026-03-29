@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Attendance - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        .bg-custom-sidebar { background-color: #103554; }
+        #wrapper { display: flex; width: 100%; }
+
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: 16rem;
+            padding-left: 0;
+            transition: margin 0.25s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            #page-content-wrapper { margin-left: 0; }
+        }
+
+        .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-icon { position: absolute; right: 15px; top: 15px; font-size: 3rem; opacity: 0.15; }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm border-bottom mb-4 sticky-top">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                <h5 class="m-0 fw-bold text-dark">Attendance Command Center</h5>
+            </div>
+            
+            <div class="d-flex gap-3 align-items-center">
+                <div class="text-muted small fw-bold d-none d-md-block">{{ today.strftime('%A, %d %B %Y') }}</div>
+                <a href="/admin/payroll" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="bi bi-wallet2 me-2"></i> Salary & Payroll
+                </a>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4 pb-5">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card bg-primary text-white p-3 h-100">
+                        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                        <small class="text-uppercase fw-bold opacity-75">Total Staff</small>
+                        <h2 class="mb-0 fw-bold">{{ stats.total }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card bg-success text-white p-3 h-100">
+                        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                        <small class="text-uppercase fw-bold opacity-75">Present</small>
+                        <h2 class="mb-0 fw-bold">{{ stats.present }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card bg-warning text-dark p-3 h-100">
+                        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                        <small class="text-uppercase fw-bold opacity-75">Late</small>
+                        <h2 class="mb-0 fw-bold">{{ stats.late }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card bg-danger text-white p-3 h-100">
+                        <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+                        <small class="text-uppercase fw-bold opacity-75">Absent</small>
+                        <h2 class="mb-0 fw-bold">{{ stats.absent }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            {% if pending_requests %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-5 border-warning">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-bell-fill text-warning me-2"></i> Pending Approvals</h6>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ pending_requests|length }} New</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Staff</th>
+                                    <th>Request</th>
+                                    <th>Details</th>
+                                    <th class="text-end pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in pending_requests %}
+                                <tr>
+                                    <td class="ps-4 fw-bold">{{ req.user.full_name }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ req.request_type }}</span></td>
+                                    <td class="text-muted small">
+                                        {% if req.amount > 0 %} Rs. {{ "{:,.0f}".format(req.amount) }} - {% endif %}
+                                        {{ req.description }}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="request_id" value="{{ req.id }}">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm rounded-pill px-3">Approve</button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-outline-danger btn-sm rounded-pill px-3">Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary">Daily Attendance Log</h5>
+                    <button onclick="document.getElementById('attendanceForm').submit()" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-save me-2"></i> Save Changes
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <form method="POST" id="attendanceForm">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Employee</th>
+                                        <th>In / Out</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for staff in staff_list %}
+                                    {% set att = attendance_map.get(staff.id) %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ url_for('static', filename='uploads/' + staff.profile_pic) if staff.profile_pic else 'https://ui-avatars.com/api/?name=' + staff.full_name }}" class="rounded-circle border me-3 shadow-sm" width="40" height="40" style="object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ staff.full_name }}</div>
+                                                    <small class="text-muted">{{ staff.job_title }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if att and att.clock_in %}
+                                                <span class="text-success fw-bold bg-success bg-opacity-10 px-2 py-1 rounded">{{ att.clock_in.strftime('%I:%M %p') }}</span>
+                                            {% else %}
+                                                <span class="text-muted small">--</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <input type="radio" class="btn-check" name="status_{{ staff.id }}" id="p_{{ staff.id }}" value="Present" {% if att and att.status == 'Present' %}checked{% endif %}>
+                                                <label class="btn btn-outline-success btn-sm" for="p_{{ staff.id }}">Present</label>
+
+                                                <input type="radio" class="btn-check" name="status_{{ staff.id }}" id="l_{{ staff.id }}" value="Late" {% if att and att.status == 'Late' %}checked{% endif %}>
+                                                <label class="btn btn-outline-warning btn-sm" for="l_{{ staff.id }}">Late</label>
+
+                                                <input type="radio" class="btn-check" name="status_{{ staff.id }}" id="a_{{ staff.id }}" value="Absent" {% if not att or att.status == 'Absent' %}checked{% endif %}>
+                                                <label class="btn btn-outline-danger btn-sm" for="a_{{ staff.id }}">Absent</label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

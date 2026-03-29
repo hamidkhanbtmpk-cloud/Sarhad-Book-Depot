@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Terminal - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* --- SHARED CSS --- */
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        .bg-custom-sidebar { background-color: #103554; }
+
+        /* Layout CSS is now centrally managed in admin_sidebar.html */
+        #wrapper { display: flex; width: 100%; }
+        
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: 16rem; 
+            transition: margin 0.25s ease-out;
+        }
+
+        /* --- STAFF MODE --- */
+        body.staff-mode #sidebar-wrapper { display: none !important; width: 0 !important; }
+        body.staff-mode #page-content-wrapper { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+        body.staff-mode #sidebarToggle { display: none !important; }
+
+        @media (max-width: 768px) {
+            #page-content-wrapper { margin-left: 0; }
+        }
+        
+        .btn-back-dashboard { background-color: #e9ecef; color: #333; font-weight: 600; border: 1px solid #ccc; }
+        .btn-back-dashboard:hover { background-color: #dbe0e5; }
+    </style>
+</head>
+
+<body class="{% if session.get('role') != 'admin' %}staff-mode{% endif %}">
+
+<div id="wrapper">
+
+    {% if session.get('role') == 'admin' %}
+        {% include 'admin_sidebar.html' %}
+    {% endif %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4 sticky-top">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                
+                {% if session.get('role') != 'admin' %}
+                    <a href="/staff/tasks" class="btn btn-back-dashboard me-3 rounded-pill px-3 py-2 btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Dashboard
+                    </a>
+                {% endif %}
+                
+                <h4 class="m-0 fw-bold text-primary"><i class="bi bi-receipt me-2"></i>Billing Terminal</h4>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill d-none d-sm-block">
+                    {{ session.get('full_name', 'User') }} ({{ session.get('role')|upper }})
+                </span>
+                <a href="/logout" class="btn btn-danger btn-sm text-white rounded-pill px-3">Logout</a>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            <div class="row g-3">
+
+                <div class="col-lg-5">
+                    
+                    <div class="card rounded-4 mb-3 bg-primary bg-opacity-10 border border-primary">
+                        <div class="card-body">
+                            <label class="fw-bold text-primary mb-1"><i class="bi bi-upc-scan me-1"></i> Scan Barcode</label>
+                            <input type="text" id="barcodeInput" class="form-control form-control-lg border-primary shadow-sm" placeholder="Scan item..." inputmode="numeric" autofocus>
+                        </div>
+                    </div>
+
+                    <div class="card rounded-4 mb-3">
+                        <div class="card-header bg-white fw-bold border-0 pt-3"><i class="bi bi-person-circle me-1"></i> Customer Info</div>
+                        <div class="card-body pt-0">
+                            <input type="text" id="clientName" class="form-control mb-2 bg-light" placeholder="Customer Name (Required)">
+                            <input type="number" id="clientPhone" class="form-control mb-2 bg-light" placeholder="Phone Number (Optional)" inputmode="numeric">
+                            <input type="text" id="clientAddress" class="form-control bg-light" placeholder="Shop Location / Address (Optional)">
+                        </div>
+                    </div>
+
+                    <div class="card rounded-4">
+                        <div class="card-header bg-white fw-bold border-0 pt-3"><i class="bi bi-keyboard me-1"></i> Manual Search</div>
+                        <div class="card-body pt-0">
+                            <select id="productSelect" class="form-select mb-2 bg-light">
+                                <option value="">-- Search Product --</option>
+                                {% for p in products %}
+                                <option value="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.price }}" data-stock="{{ p.quantity }}" data-tax="{{ p.tax_rate }}">
+                                    {{ p.name }} (Stock: {{ p.quantity }}) - Rs {{ "{:,.0f}".format(p.price) }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="d-flex gap-2">
+                                <input type="number" id="productQty" value="1" min="1" class="form-control bg-light" placeholder="Qty">
+                                <button class="btn btn-success fw-bold px-4" onclick="addToCartManual()">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card rounded-4 h-100 shadow-sm">
+                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                            <span class="fw-bold h5 mb-0"><i class="bi bi-cart3 me-2"></i> Current Bill</span>
+                            <button class="btn btn-danger btn-sm rounded-pill px-3" onclick="clearCart()">Clear</button>
+                        </div>
+
+                        <div class="table-responsive flex-grow-1" style="height: 400px; overflow-y: auto;">
+                            <table class="table table-striped mb-0 align-middle table-hover">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th style="width: 80px;">Price</th>
+                                        <th style="width: 70px;">Qty</th>
+                                        <th style="width: 90px;">Total</th>
+                                        <th style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cartBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="card-footer bg-white border-top p-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Sub Total:</span>
+                                <span class="fw-bold" id="subTotalDisplay">Rs 0</span>
+                            </div>
+                            
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text bg-white border-end-0 text-success fw-bold">Discount</span>
+                                <input type="number" id="discountInput" class="form-control border-start-0" placeholder="0" oninput="renderCart()">
+                                <select id="discountType" class="form-select bg-light" style="max-width: 80px;" onchange="renderCart()">
+                                    <option value="pkr">PKR</option>
+                                    <option value="percent">%</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-between border-top pt-2">
+                                <span class="h4 fw-bold text-dark">Net Payable:</span>
+                                <span class="h3 fw-bold text-success" id="grandTotalDisplay">Rs 0</span>
+                            </div>
+                            
+                            <button class="btn btn-primary w-100 mt-3 py-3 fw-bold rounded-pill shadow" onclick="submitInvoice()">
+                                <i class="bi bi-printer-fill me-2"></i> GENERATE INVOICE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+
+    // --- BARCODE SCANNER ---
+    const barcodeInput = document.getElementById('barcodeInput');
+    if(barcodeInput){
+        barcodeInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const code = barcodeInput.value.trim();
+                if(code) fetchProductByBarcode(code);
+            }
+        });
+    }
+
+    function fetchProductByBarcode(code) {
+        fetch('/get-product-by-barcode/' + code)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                addToCart(data.id, data.name, data.price, 1, data.tax_rate, data.stock);
+                barcodeInput.value = ""; 
+                barcodeInput.focus();
+            } else {
+                alert("Product not found!");
+                barcodeInput.value = "";
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // --- MANUAL ADD ---
+    function addToCartManual() {
+        const sel = document.getElementById('productSelect');
+        if (!sel.value) { alert("Select a product!"); return; }
+        const opt = sel.options[sel.selectedIndex];
+        const qty = parseInt(document.getElementById('productQty').value);
+        addToCart(sel.value, opt.dataset.name, parseFloat(opt.dataset.price), qty, parseFloat(opt.dataset.tax)||0, parseInt(opt.dataset.stock));
+    }
+
+    // --- CART LOGIC ---
+    function addToCart(id, name, price, qty, tax, stock) {
+        const found = cart.find(item => item.id == id);
+        if (found) {
+            if (found.qty + qty > stock) { alert("Stock Limit Reached!"); return; }
+            found.qty += qty;
+        } else {
+            if (qty > stock) { alert("Not enough stock!"); return; }
+            cart.push({ id, name, price, qty, tax, stock });
+        }
+        renderCart();
+    }
+
+    function renderCart() {
+        const body = document.getElementById('cartBody');
+        body.innerHTML = "";
+        let sub = 0;
+
+        // 1. Build Table
+        cart.forEach((item, index) => {
+            let lineTotal = item.price * item.qty;
+            sub += lineTotal;
+
+            body.innerHTML += `
+                <tr>
+                    <td>
+                        <div class="fw-bold text-truncate" style="max-width: 140px;">${item.name}</div>
+                        <small class="text-muted" style="font-size:10px;">Max: ${item.stock}</small>
+                    </td>
+                    <td>${item.price}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm text-center p-0" 
+                               value="${item.qty}" min="1" max="${item.stock}" 
+                               onchange="updateQty(${index}, this.value)" style="width: 50px;">
+                    </td>
+                    <td class="fw-bold">${lineTotal.toFixed(0)}</td>
+                    <td><i class="bi bi-x-circle-fill text-danger fs-5" style="cursor:pointer;" onclick="removeItem(${index})"></i></td>
+                </tr>
+            `;
+        });
+
+        // 2. Calculate Discount & Totals (Safe Check added)
+        let discInput = document.getElementById('discountInput');
+        let discTypeInput = document.getElementById('discountType');
+        
+        let discVal = discInput ? (parseFloat(discInput.value) || 0) : 0;
+        let discType = discTypeInput ? discTypeInput.value : 'pkr';
+        
+        let discountAmt = 0;
+
+        if (discType === 'percent') {
+            discountAmt = (sub * discVal) / 100;
+        } else {
+            discountAmt = discVal;
+        }
+
+        let grand = sub - discountAmt;
+        if (grand < 0) grand = 0;
+
+        // 3. Update Display
+        document.getElementById('subTotalDisplay').innerText = "Rs " + sub.toLocaleString();
+        document.getElementById('grandTotalDisplay').innerText = "Rs " + grand.toLocaleString();
+    }
+
+    function updateQty(index, val) {
+        let newQty = parseInt(val);
+        if (newQty > cart[index].stock) { alert("Stock unavailable!"); cart[index].qty = cart[index].stock; }
+        else if (newQty < 1) { cart[index].qty = 1; }
+        else { cart[index].qty = newQty; }
+        renderCart();
+    }
+
+    function removeItem(index) { cart.splice(index, 1); renderCart(); }
+    function clearCart() { if(confirm("Clear Cart?")) { cart = []; renderCart(); } }
+
+    function submitInvoice() {
+        // 1. Safety Check: Is cart empty?
+        if (cart.length === 0) { alert("Cart is empty!"); return; }
+        
+        // 2. Get Values safely (using optional chaining ?.value)
+        const name = document.getElementById('clientName')?.value.trim();
+        const phone = document.getElementById('clientPhone')?.value.trim();
+        const address = document.getElementById('clientAddress')?.value.trim(); 
+        
+        const discVal = document.getElementById('discountInput')?.value || 0;
+        const discType = document.getElementById('discountType')?.value || 'pkr';
+
+        if (!name) { alert("Customer Name Required!"); return; }
+
+        // 3. Send to Backend
+        fetch('/admin/billing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                client_name: name, 
+                client_phone: phone, 
+                client_address: address, 
+                discount_value: discVal, 
+                discount_type: discType,
+                items: cart 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/admin/invoice/' + data.invoice_id;
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("Something went wrong! Check console.");
+        });
+    }
+
+    // Sidebar toggle is handled in admin_sidebar.html (Removed duplicate)
+</script>
+
+</body>
+</html>

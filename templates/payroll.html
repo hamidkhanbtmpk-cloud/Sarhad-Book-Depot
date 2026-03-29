@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Management - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* --- FIXED SIDEBAR CSS --- */
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        .bg-custom-sidebar { background-color: #103554; }
+        #wrapper { display: flex; overflow-x: hidden; }
+        
+        #sidebar-wrapper {
+            min-height: 100vh;
+            margin-left: 0;
+            width: 16rem !important; /* FIXED WIDTH */
+            min-width: 16rem !important;
+            position: fixed;
+            z-index: 1000;
+        }
+
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: 16rem;
+            transition: margin 0.25s ease-out;
+        }
+
+        .sidebar-heading { padding: 1.5rem 1.5rem; }
+        .sidebar-link { color: rgba(255,255,255,0.85); text-decoration: none; padding: 12px 20px; display: block; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .sidebar-link.active { background: rgba(255,255,255,0.2); border-left-color: #0d6efd; color: #fff; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            #sidebar-wrapper { margin-left: -16rem; }
+            #page-content-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    
+    <div class="bg-custom-sidebar text-white" id="sidebar-wrapper">
+        <div class="sidebar-heading">
+            <span class="fw-bold d-block h5 mb-0">SARHAD BOOK DEPOT</span>
+            <span class="text-warning fw-bold small">BATTAGRAM</span>
+        </div>
+        <div class="list-group list-group-flush mt-2">
+            <a href="/admin/dashboard" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+            <a href="/admin/online_orders" class="sidebar-link">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-cart-check me-2"></i> Orders</span>
+                    {% if packed_orders and packed_orders > 0 %}<span class="badge bg-danger rounded-pill">{{ packed_orders }}</span>{% endif %}
+                </div>
+            </a>
+            <a href="/admin/inventory" class="sidebar-link"><i class="bi bi-box-seam me-2"></i> Inventory</a>
+            <a href="/admin/billing" class="sidebar-link"><i class="bi bi-receipt me-2"></i> Billing / POS</a>
+            <a href="/admin/sales" class="sidebar-link"><i class="bi bi-clock-history me-2"></i> Sales History</a>
+            <a href="/admin/employees" class="sidebar-link"><i class="bi bi-people-fill me-2"></i> Staff List</a>
+            <a href="/admin/attendance" class="sidebar-link active"><i class="bi bi-calendar-check me-2"></i> Attendance</a>
+            <a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear-fill me-2"></i> Settings</a>
+            <a href="/logout" class="sidebar-link text-danger mt-4"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+        </div>
+    </div>
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4 sticky-top">
+            <div class="d-flex align-items-center">
+                <h4 class="m-0 fw-bold">Payroll & Deductions</h4>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/admin/attendance" class="btn btn-outline-dark btn-sm rounded-pill px-3">Back</a>
+                <a href="/admin/salary/email/all" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm" onclick="return confirm('Send Salary Slip to ALL Staff via Email?')">
+                    <i class="bi bi-envelope-fill me-1"></i> Email All Slips
+                </a>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 me-2"></i> Current Month Salary Sheet</h5>
+                </div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3">Employee Name</th>
+                                <th>Base Salary</th>
+                                <th class="text-danger">Total Deductions</th>
+                                <th class="text-success">Net Payable</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in payroll %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">{{ row.staff.full_name }}</div>
+                                    <small class="text-muted">{{ row.staff.job_title }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">Rs. {{ "{:,.0f}".format(row.base) }}</span>
+                                </td>
+                                <td class="text-danger fw-bold">
+                                    - Rs. {{ "{:,.0f}".format(row.deductions) }}
+                                </td>
+                                <td>
+                                    <h5 class="mb-0 text-success fw-bold">Rs. {{ "{:,.0f}".format(row.net) }}</h5>
+                                </td>
+                                <td class="text-end pe-4">
+                                    
+                                    <button class="btn btn-warning btn-sm rounded-circle shadow-sm me-1 text-dark" title="Add Advance/Shop Item" onclick="openDeductionModal('{{ row.staff.id }}', '{{ row.staff.full_name }}')">
+                                        <i class="bi bi-dash-lg fw-bold"></i>
+                                    </button>
+                                    
+                                    <a href="/admin/salary/email/{{ row.staff.id }}" class="btn btn-info btn-sm rounded-circle text-white shadow-sm me-1" title="Email Slip" onclick="return confirm('Send email to {{ row.staff.full_name }}?')">
+                                        <i class="bi bi-envelope"></i>
+                                    </a>
+
+                                    <a href="/admin/salary/slip/{{ row.staff.id }}" target="_blank" class="btn btn-primary btn-sm rounded-circle shadow-sm" title="Print Slip">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">No staff records found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deductionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-dash-circle me-2"></i> Add Deduction / Advance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/add_deduction" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="user_id" id="modal_user_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Staff Member</label>
+                        <input type="text" class="form-control bg-light" id="modal_user_name" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Deduction Type</label>
+                        <select name="type" class="form-select">
+                            <option value="Cash Advance">Cash Advance (Udhaar)</option>
+                            <option value="Shop Item">Shop Item Purchase</option>
+                            <option value="Fine/Penalty">Fine / Penalty</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Amount (Rs)</label>
+                            <input type="number" name="amount" class="form-control border-danger" required placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description / Reason</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Took cash for lunch OR Bought 2 Registers" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark">Save Deduction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Open Modal Logic
+    function openDeductionModal(id, name) {
+        document.getElementById('modal_user_id').value = id;
+        document.getElementById('modal_user_name').value = name;
+        new bootstrap.Modal(document.getElementById('deductionModal')).show();
+    }
+</script>
+
+</body>
+</html>

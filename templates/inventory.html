@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Layout CSS */
+        #wrapper { overflow-x: hidden; display: flex; }
+        #page-content-wrapper { width: 100%; margin-left: 16rem; transition: margin 0.25s ease-out; }
+        
+        @media (max-width: 768px) { 
+            #page-content-wrapper { margin-left: 0; } 
+        }
+        
+        #inventoryReader { width: 100%; }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                <h4 class="m-0 fw-bold text-dark">Stock Inventory</h4>
+            </div>
+            <span class="badge bg-secondary px-3 py-2">{{ session['role'].upper() }} MODE</span>
+        </nav>
+
+        <div class="container-fluid px-4">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mb-3">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 border-0">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-3">
+                            <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-list-check me-2"></i> Product List</h5>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <form action="/admin/inventory" method="GET" class="d-flex gap-2">
+                                <select name="category" class="form-select" style="max-width: 180px;" onchange="this.form.submit()">
+                                    <option value="">All Categories</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <div class="input-group">
+                                    <button class="btn btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#scanModal" onclick="startInvScanner()">
+                                        <i class="bi bi-qr-code-scan"></i>
+                                    </button>
+                                    <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search item or barcode..." value="{{ request.args.get('search', '') }}">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {% if session['role'] == 'admin' %}
+                        <div class="col-md-2 text-md-end">
+                            <a href="/admin/inventory/add" class="btn btn-success fw-bold w-100"><i class="bi bi-plus-lg me-1"></i> Add New</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">Image</th> <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Category</th>
+                                {% if session['role'] == 'admin' %}<th>Cost</th>{% endif %}
+                                <th>Sale Price</th>
+                                <th>Tax</th>
+                                <th>Stock</th>
+                                {% if session['role'] == 'admin' %}<th class="text-center">Action</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products.items %}
+                            <tr>
+                                <td class="ps-4">
+                                    {% if product.image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
+                                             width="40" height="40" 
+                                             class="rounded border" 
+                                             loading="lazy"
+                                             style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center border" style="width:40px; height:40px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <td><span class="badge bg-light text-dark border font-monospace">{{ product.barcode or '-' }}</span></td>
+                                <td class="fw-bold">{{ product.name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ product.category }}</span></td>
+                                {% if session['role'] == 'admin' %}<td class="text-muted small">Rs. {{ "{:,.0f}".format(product.cost_price) }}</td>{% endif %}
+                                <td class="fw-bold text-success">Rs. {{ "{:,.0f}".format(product.price) }}</td>
+                                <td>{{ product.tax_rate }}%</td>
+                                <td>
+                                    {% if product.quantity < 10 %}
+                                        <span class="badge bg-danger text-white">{{ product.quantity }} (Low)</span>
+                                    {% else %}
+                                        <span class="fw-bold">{{ product.quantity }}</span>
+                                    {% endif %}
+                                </td>
+                                {% if session['role'] == 'admin' %}
+                                <td class="text-center">
+                                    <a href="/admin/inventory/edit/{{ product.id }}" class="btn btn-sm btn-outline-primary border-0 me-1"><i class="bi bi-pencil-fill"></i></a>
+                                    <a href="/admin/inventory/delete/{{ product.id }}" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Delete {{ product.name }}?');"><i class="bi bi-trash-fill"></i></a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="10" class="text-center text-muted py-5">No items found matching criteria.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white py-3">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item {% if not products.has_prev %}disabled{% endif %}">
+                                <a class="page-link rounded-start-pill" href="{{ url_for('inventory', page=products.prev_num, filter=request.args.get('filter'), search=request.args.get('search'), category=request.args.get('category')) }}">Previous</a>
+                            </li>
+                            
+                            {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {% if page_num == products.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('inventory', page=page_num, filter=request.args.get('filter'), search=request.args.get('search'), category=request.args.get('category')) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <li class="page-item {% if not products.has_next %}disabled{% endif %}">
+                                <a class="page-link rounded-end-pill" href="{{ url_for('inventory', page=products.next_num, filter=request.args.get('filter'), search=request.args.get('search'), category=request.args.get('category')) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="text-center mt-2 small text-muted">
+                        Showing page {{ products.page }} of {{ products.pages }} (Total {{ products.total }} items)
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scan Barcode to Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="stopInvScanner()"></button>
+            </div>
+            <div class="modal-body">
+                <div id="inventoryReader"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    // Scanner Logic
+    let invScanner;
+    function startInvScanner() {
+        if (typeof Html5Qrcode === 'undefined') {
+            alert("Scanner is still loading... please wait 2 seconds.");
+            return;
+        }
+        
+        invScanner = new Html5Qrcode("inventoryReader");
+        invScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, (decodedText) => {
+            document.getElementById('searchInput').value = decodedText;
+            stopInvScanner();
+            document.querySelector('#scanModal .btn-close').click(); 
+            document.querySelector('form[action="/admin/inventory"]').submit(); 
+        });
+    }
+    function stopInvScanner() {
+        if (invScanner) {
+            invScanner.stop().then(() => invScanner.clear());
+        }
+    }
+</script>
+
+</body>
+</html>

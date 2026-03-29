@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Sarhad Book Depot</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        
+        /* --- LAYOUT CONSISTENCY --- */
+        .bg-custom-sidebar { background-color: #103554; }
+        #wrapper { display: flex; width: 100%; overflow-x: hidden; }
+        #sidebar-wrapper { min-height: 100vh; margin-left: 0; width: 16rem; position: fixed; z-index: 1000; transition: margin 0.25s ease-out; }
+        #page-content-wrapper { width: 100%; margin-left: 16rem; transition: margin 0.25s ease-out; }
+        
+        .sidebar-heading { padding: 1.5rem 1.5rem; }
+        .sidebar-link { color: rgba(255,255,255,0.85); text-decoration: none; padding: 12px 20px; display: block; border-left: 4px solid transparent; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .sidebar-link.active { background: rgba(255,255,255,0.2); color: #fff; font-weight: bold; border-left-color: #0d6efd; }
+        
+        body.sb-sidenav-toggled #sidebar-wrapper { margin-left: -16rem; }
+        body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+        @media (max-width: 768px) { 
+            #sidebar-wrapper { margin-left: -16rem; } 
+            #page-content-wrapper { margin-left: 0; } 
+            body.sb-sidenav-toggled #sidebar-wrapper { margin-left: 0; }
+            body.sb-sidenav-toggled #page-content-wrapper { margin-left: 0; }
+        }
+        /* ------------------------- */
+
+        /* Settings Card Styling */
+        .settings-card {
+            border: none;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background-color: white;
+            padding: 20px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-title { font-weight: 700; color: #103554; font-size: 1.1rem; margin: 0; }
+        
+        .form-label { font-weight: 600; font-size: 0.85rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control, .form-select { border-radius: 8px; padding: 10px 15px; border-color: #e2e8f0; }
+        .form-control:focus { border-color: #103554; box-shadow: 0 0 0 0.2rem rgba(16, 53, 84, 0.1); }
+        
+        .btn-primary-custom {
+            background-color: #103554; color: white; border: none;
+            padding: 10px 25px; border-radius: 50px; font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary-custom:hover { background-color: #0b243b; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 53, 84, 0.2); }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4 border-bottom">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                <h4 class="m-0 fw-bold text-dark">System Configuration</h4>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4 pb-5">
+            
+            {% if message %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                
+                <div class="col-12">
+                    <div class="settings-card">
+                        <div class="card-header-custom">
+                            <h5 class="header-title text-primary"><i class="bi bi-images me-2"></i> Home Page Slider</h5>
+                        </div>
+                        <div class="p-4">
+                            <form method="POST" enctype="multipart/form-data" class="row g-3 align-items-end mb-4">
+                                <input type="hidden" name="action" value="add_slider_image">
+                                <div class="col-md-9">
+                                    <label class="form-label">Upload New Slide (1920x600 Recommended)</label>
+                                    <input type="file" name="slider_image" class="form-control" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-success w-100 fw-bold"><i class="bi bi-plus-lg"></i> Add Slide</button>
+                                </div>
+                            </form>
+
+                            <hr class="text-muted opacity-25">
+                            <h6 class="fw-bold mb-3">Active Slides</h6>
+                            <div class="row g-3">
+                                {% for slide in sliders %}
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="card h-100 border shadow-sm">
+                                        <div style="height: 120px; overflow: hidden;">
+                                            <img src="{{ url_for('static', filename='uploads/' + slide.image_filename) }}" class="w-100 h-100" style="object-fit: cover;">
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="delete_slider_image">
+                                                <input type="hidden" name="slider_id" value="{{ slide.id }}">
+                                                <button class="btn btn-sm btn-outline-danger w-100 border-0 fw-bold text-uppercase" style="font-size: 0.8rem;">
+                                                    <i class="bi bi-trash me-1"></i> Remove
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="col-12 text-center py-4 text-muted bg-light rounded border border-dashed">
+                                    <i class="bi bi-image fs-1 d-block mb-2 opacity-50"></i>
+                                    No slider images found. Default static banner will be used.
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    
+                    <div class="settings-card">
+                        <div class="card-header-custom">
+                            <h5 class="header-title"><i class="bi bi-shop-window me-2 text-warning"></i> Shop Profile & Branding</h5>
+                        </div>
+                        <div class="p-4">
+                            <form method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="update_shop">
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Shop Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+                                            <input type="text" name="shop_address" class="form-control" value="{{ settings.shop_address }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Shop Email</label>
+                                        <input type="email" name="shop_email" class="form-control" value="{{ settings.shop_email }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Contact Info</label>
+                                        <input type="text" name="shop_contacts" class="form-control" value="{{ settings.shop_contacts }}">
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <label class="form-label">Invoice Logo</label>
+                                        <input type="file" name="invoice_logo" class="form-control" accept="image/*">
+                                        {% if settings.invoice_logo %}
+                                            <div class="mt-2 p-2 bg-light rounded border d-inline-block">
+                                                <img src="{{ url_for('static', filename='uploads/' + settings.invoice_logo) }}" height="40">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Signature & Stamp</label>
+                                        <input type="file" name="signature_image" class="form-control" accept="image/*">
+                                        {% if settings.signature_image %}
+                                            <div class="mt-2 p-2 bg-light rounded border d-inline-block">
+                                                <img src="{{ url_for('static', filename='uploads/' + settings.signature_image) }}" height="40">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Home Page Background</label>
+                                        <input type="file" name="home_bg_image" class="form-control" accept="image/*">
+                                        {% if settings.home_bg_image %}
+                                            <small class="text-success d-block mt-1 fw-bold"><i class="bi bi-check-circle-fill"></i> Image Active</small>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 text-end border-top pt-3">
+                                        <button type="submit" class="btn btn-primary-custom">
+                                            <i class="bi bi-save me-2"></i> Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header-custom">
+                            <h5 class="header-title"><i class="bi bi-bank2 me-2 text-success"></i> Payment Accounts</h5>
+                            <span class="badge bg-light text-dark border">{{ banks|length }} Active</span>
+                        </div>
+                        <div class="p-4">
+                            <form method="POST" class="row g-2 align-items-end mb-4 bg-light p-3 rounded-3 border">
+                                <input type="hidden" name="action" value="add_bank">
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-muted mb-1">Account Title</label>
+                                    <input type="text" name="title" class="form-control form-control-sm" placeholder="Title" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-muted mb-1">Bank Name</label>
+                                    <input type="text" name="bank_name" class="form-control form-control-sm" placeholder="Bank Name" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-muted mb-1">Account No</label>
+                                    <input type="text" name="account_no" class="form-control form-control-sm" placeholder="Number" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold text-muted mb-1">IBAN (Opt)</label>
+                                    <input type="text" name="iban" class="form-control form-control-sm" placeholder="PK...">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>Title</th><th>Bank</th><th>Details</th><th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for bank in banks %}
+                                        <tr>
+                                            <td class="fw-bold">{{ bank.title }}</td>
+                                            <td><span class="badge bg-secondary bg-opacity-10 text-dark">{{ bank.bank_name }}</span></td>
+                                            <td class="small text-muted font-monospace">{{ bank.account_no }}<br>{{ bank.iban or '' }}</td>
+                                            <td class="text-end">
+                                                <form method="POST" onsubmit="return confirm('Delete?');" style="display:inline;">
+                                                    <input type="hidden" name="action" value="delete_bank">
+                                                    <input type="hidden" name="bank_id" value="{{ bank.id }}">
+                                                    <button class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-4">No bank accounts added.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-4">
+                    
+                    <div class="settings-card">
+                        <div class="card-header-custom">
+                            <h5 class="header-title"><i class="bi bi-shield-lock me-2 text-danger"></i> Staff Access</h5>
+                        </div>
+                        <div class="p-4">
+                            <form method="POST">
+                                <label class="form-label">Signup Security Code</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" name="new_code" class="form-control fw-bold text-center text-primary" value="{{ settings.security_code }}" required>
+                                    <button class="btn btn-warning" type="submit">Update</button>
+                                </div>
+                                <small class="text-muted" style="font-size: 11px;">
+                                    * Only share this code with employees to let them create accounts.
+                                </small>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header-custom">
+                            <h5 class="header-title"><i class="bi bi-person-badge me-2 text-primary"></i> Admin Login</h5>
+                        </div>
+                        <div class="p-4">
+                            <form method="POST" class="mb-4">
+                                <label class="form-label">Change Login Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="new_email" class="form-control" value="{{ admin_user.email }}" required>
+                                    <button class="btn btn-outline-primary" type="submit">Save</button>
+                                </div>
+                            </form>
+                            
+                            <form method="POST">
+                                <label class="form-label">Change Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-key"></i></span>
+                                    <input type="password" name="new_password" class="form-control" placeholder="New Password" required>
+                                    <button class="btn btn-danger" type="submit">Update</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar toggle is handled centrally in admin_sidebar.html to prevent conflicts
+</script>
+</body>
+</html>

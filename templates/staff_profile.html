@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Staff Settings</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- LAYOUT OVERRIDES (Force Full Width & Hide Sidebar) --- */
+        #sidebar-wrapper, .bg-custom-sidebar {
+            display: none !important;
+            width: 0 !important;
+        }
+        #page-content-wrapper, #wrapper {
+            margin-left: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        /* --- PAGE STYLING --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background-color: #103554;
+            padding: 15px 0;
+        }
+        .navbar-brand { font-weight: 700; letter-spacing: 1px; color: white !important; }
+        
+        /* Profile Card */
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-top: 30px;
+            border: none;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #103554 0%, #20507a 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .profile-img-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+        
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.3);
+            background: white;
+        }
+        
+        .role-badge {
+            background: #eab308;
+            color: #103554;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .btn-save {
+            background-color: #103554;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-save:hover { background-color: #0b243b; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark navbar-custom shadow-sm sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/staff/tasks" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <span class="navbar-brand mb-0 h1 d-none d-sm-block">Profile Settings</span>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm rounded-pill px-4">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mt-4">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="profile-card">
+                    
+                    <div class="profile-header">
+                        <div class="profile-img-container">
+                            {% if user.profile_pic %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" class="profile-img" alt="Profile">
+                            {% else %}
+                                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-img" alt="Default">
+                            {% endif %}
+                        </div>
+                        <h4 class="fw-bold mb-1">{{ user.full_name }}</h4>
+                        <p class="mb-2 opacity-75">@{{ user.username }}</p>
+                        <span class="role-badge"><i class="bi bi-person-badge me-1"></i> Staff Member</span>
+                    </div>
+
+                    <div class="p-4 p-md-5">
+                        <form method="POST" enctype="multipart/form-data">
+                            
+                            <h5 class="mb-4 text-primary border-bottom pb-2"><i class="bi bi-person-lines-fill me-2"></i> Personal Details</h5>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Full Name</label>
+                                    <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Email Address</label>
+                                    <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Phone Number</label>
+                                    <input type="text" name="phone" class="form-control" value="{{ user.phone }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">CNIC (Read-only)</label>
+                                    <input type="text" class="form-control bg-light" value="{{ user.cnic }}" readonly>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-4 text-primary border-bottom pb-2"><i class="bi bi-shield-lock me-2"></i> Security & Photo</h5>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">New Password (Optional)</label>
+                                    <input type="password" name="password" class="form-control" placeholder="Leave empty to keep same">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Update Profile Picture</label>
+                                    <input type="file" name="profile_pic" class="form-control" accept="image/*">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">Home Address</label>
+                                    <textarea name="address" class="form-control" rows="2">{{ user.address }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/staff/tasks" class="btn btn-light rounded-pill px-4">Cancel</a>
+                                <button type="submit" class="btn btn-save shadow">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Update Profile
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

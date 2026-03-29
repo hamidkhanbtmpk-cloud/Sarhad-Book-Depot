@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Online - Sarhad Book Depot</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #fd7e14;
+            --dark-color: #212529;
+            --light-bg: #eef2f6; 
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: #333; overflow-x: hidden; }
+
+        /* --- TOP BAR --- */
+        .top-bar { background-color: var(--primary-color); color: white; font-size: 0.85rem; padding: 8px 0; }
+        .top-bar a { color: white; text-decoration: none; margin-left: 15px; cursor: pointer; }
+        .top-bar a:hover { text-decoration: underline; }
+
+        /* --- HEADER --- */
+        .main-header { background: white; padding: 20px 0; box-shadow: 0 2px 15px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .search-input { border-radius: 50px 0 0 50px; border: 2px solid #eee; border-right: none; padding: 12px 20px; }
+        .search-input:focus { box-shadow: none; border-color: var(--primary-color); }
+        .search-btn { border-radius: 0 50px 50px 0; background-color: var(--secondary-color); border: 2px solid var(--secondary-color); color: white; padding: 0 25px; font-weight: 600; }
+        .search-btn:hover { background-color: #e36a0b; border-color: #e36a0b; }
+
+        /* --- SHOP HERO --- */
+        .shop-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+            color: white;
+            padding: 60px 0 80px;
+            text-align: center;
+            border-radius: 0 0 50px 50px;
+            margin-bottom: 40px;
+        }
+
+        /* --- CATEGORIES --- */
+        .category-scroll { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: -60px; margin-bottom: 40px; position: relative; z-index: 10; }
+        .cat-btn { background: white; border: 1px solid #ddd; padding: 10px 30px; border-radius: 50px; font-size: 0.95rem; color: #555; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; font-weight: 500; }
+        .cat-btn.active, .cat-btn:hover { background: var(--secondary-color); color: white; border-color: var(--secondary-color); transform: translateY(-3px); }
+
+        /* --- PRODUCT CARD --- */
+        .product-card { border: none; border-radius: 15px; background: white; transition: 0.3s; height: 100%; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .img-wrapper { height: 200px; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; border-bottom: 1px solid #f0f0f0; background: #fff; }
+        .card-img-top { max-height: 100%; max-width: 100%; object-fit: contain; transition: 0.3s; }
+        .product-card:hover .card-img-top { transform: scale(1.05); }
+        .badge-stock { position: absolute; top: 10px; left: 10px; font-size: 0.7rem; border-radius: 20px; padding: 5px 12px; font-weight: 600; }
+        
+        .product-title { font-weight: 600; font-size: 1rem; color: var(--dark-color); }
+        .qty-input { width: 50px; text-align: center; border: 1px solid #ddd; border-radius: 5px; padding: 5px; }
+        
+        .btn-add-cart {
+            background-color: var(--primary-color); color: white; border: none; width: 100%; padding: 10px; 
+            border-radius: 8px; font-weight: 600; transition: 0.2s; margin-top: 10px;
+        }
+        .btn-add-cart:hover { background-color: #0b5ed7; }
+        .btn-add-cart:disabled { background-color: #e9ecef; color: #6c757d; }
+
+        /* --- FLOATING CART --- */
+        .floating-cart { position: fixed; bottom: 30px; right: 30px; background: var(--secondary-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100; border: none; color: white; }
+        .cart-badge-float { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+
+        /* --- FOOTER --- */
+        footer { background-color: #1a1a1a; color: #bbb; padding: 60px 0 20px; margin-top: 50px; }
+        footer h5 { color: white; font-weight: 600; margin-bottom: 20px; }
+        footer ul { list-style: none; padding: 0; }
+        footer ul li { margin-bottom: 10px; }
+        
+        /* Fixed: Links now explicitly match the footer text color (#bbb) */
+        footer ul li a, footer a { color: #bbb; text-decoration: none; transition: 0.2s; }
+        footer ul li a:hover, footer a:hover { color: var(--secondary-color); padding-left: 5px; }
+        
+        .social-icons a { width: 35px; height: 35px; background: #333; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; margin-right: 10px; text-decoration: none; transition: 0.3s; }
+        .social-icons a:hover { background: var(--primary-color); }
+
+        /* --- TOAST & TRACKING --- */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        .custom-toast { background: white; border-left: 5px solid var(--secondary-color); padding: 15px 25px; border-radius: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; transform: translateX(120%); transition: transform 0.3s ease-out; }
+        .custom-toast.show { transform: translateX(0); }
+        
+        .track-step { display: flex; align-items: center; margin-bottom: 15px; opacity: 0.5; }
+        .track-step.active { opacity: 1; }
+        .track-icon { width: 40px; height: 40px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.2rem; }
+        .track-step.active .track-icon { background: var(--secondary-color); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div><i class="bi bi-telephone-fill me-1"></i> Call Us: 0997 310304</div>
+            <div>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#trackModal"><i class="bi bi-truck me-1"></i> Track Order</a>
+                {% if session.get('user') %}
+                    {% if session.get('role') == 'admin' %}
+                        <a href="/admin/dashboard"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
+                    {% else %}
+                        <a href="/staff/tasks"><i class="bi bi-list-task me-1"></i> Tasks</a>
+                    {% endif %}
+                    <a href="/logout"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+                {% else %}
+                    <a href="/login"><i class="bi bi-person-fill me-1"></i> Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <header class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 col-6">
+                    <a href="/" class="text-decoration-none text-dark d-flex align-items-center">
+                        {% if settings and settings.invoice_logo %}
+                            <img src="{{ url_for('static', filename='uploads/' + settings.invoice_logo) }}" alt="Shop Logo" style="height: 50px; width: auto; object-fit: contain;" class="me-2">
+                        {% else %}
+                            <div class="bg-primary text-white rounded p-2 me-2"><i class="bi bi-book-half fs-4"></i></div>
+                        {% endif %}
+                        <div>
+                            <h4 class="m-0 fw-bold" style="letter-spacing: -1px;">SARHAD</h4>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 2px;">BOOK DEPOT</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 d-none d-md-block">
+                    <div class="d-flex">
+                        <input type="text" id="searchInputDesk" onkeyup="filterProducts('searchInputDesk')" class="form-control search-input" placeholder="Search for books, stationery...">
+                        <button class="btn search-btn"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6 text-end">
+                    <button class="btn btn-outline-dark rounded-pill fw-bold position-relative" data-bs-toggle="modal" data-bs-target="#cartModal">
+                        <i class="bi bi-cart3 me-1"></i> My Cart
+                        <span id="cart-count-desk" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row mt-3 d-md-none">
+                <div class="col-12">
+                    <div class="d-flex">
+                        <input type="text" id="searchInputMob" onkeyup="filterProducts('searchInputMob')" class="form-control search-input" placeholder="Search products...">
+                        <button class="btn search-btn"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="shop-header">
+        <div class="container">
+            <h1 class="fw-bold mb-2">Shop All Products</h1>
+            <p class="opacity-75 m-0">Find everything you need for school and office.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="category-scroll">
+            <a href="/shop" class="cat-btn {{ 'active' if not current_category else '' }}">All Items</a>
+            {% for cat in categories %}
+                <a href="/shop?category={{ cat }}" class="cat-btn {{ 'active' if current_category == cat else '' }}">{{ cat }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="row g-4" id="productList">
+            {% for item in products %}
+            <div class="col-6 col-md-4 col-lg-3 product-item" data-name="{{ item.name.lower() }}">
+                <div class="card product-card">
+                    <div class="img-wrapper">
+                        {% if item.quantity > 0 %}
+                            <span class="badge bg-success badge-stock shadow-sm">In Stock: {{ item.quantity }}</span>
+                        {% else %}
+                            <span class="badge bg-danger badge-stock shadow-sm">Sold Out</span>
+                        {% endif %}
+                        
+                        {% if item.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" class="card-img-top">
+                        {% else %}
+                            <div class="text-center text-muted opacity-25"><i class="bi bi-image display-1"></i></div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body d-flex flex-column p-3">
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 10px;">{{ item.category }}</small>
+                        <h6 class="product-title my-2 text-truncate" title="{{ item.name }}">{{ item.name }}</h6>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto mb-3">
+                            <span class="fw-bold text-primary fs-5">Rs. {{ "{:,.0f}".format(item.price) }}</span>
+                            <input type="number" id="qty-{{ item.id }}" class="qty-input" value="1" min="1" max="{{ item.quantity }}">
+                        </div>
+
+                        {% if item.quantity > 0 %}
+                            <button onclick="addToCart('{{ item.id }}', '{{ item.name }}', '{{ item.price }}', '{{ item.quantity }}')" class="btn-add-cart shadow-sm">
+                                <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                            </button>
+                        {% else %}
+                            <button disabled class="btn-add-cart">Out of Stock</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="text-muted opacity-50"><i class="bi bi-box-seam display-1"></i></div>
+                <h4 class="mt-3 text-secondary">No products found in this category.</h4>
+                <a href="/shop" class="btn btn-outline-primary mt-3 rounded-pill px-4">View All Products</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="text-white">Sarhad Book Depot</h5>
+                    <p>Providing quality education materials and office supplies to Battagram since 2000. Your trust is our success.</p>
+                    <div class="social-icons">
+                        <a href="https://web.facebook.com/sarhadbook" target="_blank"><i class="bi bi-facebook"></i></a>
+                        <a href="#" target="_blank"><i class="bi bi-instagram"></i></a>
+                        <a href="https://wa.me/923465050980" target="_blank"><i class="bi bi-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Top Categories</h5>
+                    <ul>
+                        <li><a href="/shop?category=Stationery">Office Stationery</a></li>
+                        <li><a href="/shop?category=Books">School Books</a></li>
+                        <li><a href="/shop?category=Art">Art Supplies</a></li>
+                        <li><a href="/shop">View All Categories</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li class="d-flex mb-2">
+                            <i class="bi bi-geo-alt me-2 text-primary"></i> 
+                            <a href="https://maps.app.goo.gl/fu21mnQ6wfsoChB88" target="_blank" class="text-decoration-none">
+                                Main Bazar, Battagram, KPK
+                            </a>
+                        </li>
+                        
+                        <li class="d-flex mb-2">
+                            <i class="bi bi-telephone me-2 text-primary"></i> 
+                            <a href="tel:0997310304" class="text-decoration-none">
+                                0997 310304
+                            </a>
+                        </li>
+                        
+                        <li class="d-flex">
+                            <i class="bi bi-envelope me-2 text-primary"></i> 
+                            <a href="mailto:sarhadbookbtm@gmail.com" class="text-decoration-none">
+                                sarhadbookbtm@gmail.com
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary mt-5">
+            <div class="text-center small">
+                © Sarhad Book Depot 2025. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <button class="floating-cart d-lg-none" data-bs-toggle="modal" data-bs-target="#cartModal">
+        <i class="bi bi-cart3 fs-4"></i>
+        <span id="cart-count-mob" class="cart-badge-float">0</span>
+    </button>
+
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-bag-check me-2"></i>Checkout</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="cart-items" class="mb-3 border-bottom pb-3" style="max-height: 200px; overflow-y: auto;">
+                        <p class="text-center text-muted">Cart is empty</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between fw-bold h5 text-primary mb-4">
+                        <span>Total:</span> <span id="cart-total">Rs. 0</span>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3 small text-uppercase text-muted ls-1">Delivery Details</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><input type="text" id="cust-name" class="form-control form-control-sm" placeholder="Full Name" required></div>
+                        <div class="col-6"><input type="text" id="cust-phone" class="form-control form-control-sm" placeholder="Mobile (03...)" required></div>
+                        <div class="col-12"><input type="email" id="cust-email" class="form-control form-control-sm" placeholder="Email (For Tracking)" required></div>
+                        <div class="col-12"><textarea id="cust-address" class="form-control form-control-sm" placeholder="Complete Address" rows="2" required></textarea></div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted ls-1">Payment Method</h6>
+                    <select id="payment-mode" class="form-select form-select-sm mb-3" onchange="togglePaymentInfo()">
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Online Payment">Online Payment (Bank/EasyPaisa)</option>
+                        <option value="Pay Later">Pay Later / Contact Admin</option>
+                    </select>
+
+                    <div id="bank-details" class="bg-light p-3 rounded mb-2 border border-primary border-opacity-25 small" style="display: none;">
+                        <strong class="d-block mb-2 text-primary">Transfer To:</strong>
+                        {% if banks %}
+                            {% for bank in banks %}
+                                <div class="mb-2 pb-2 border-bottom">
+                                    <strong>{{ bank.bank_name }}</strong> ({{ bank.title }})<br>
+                                    A/C: {{ bank.account_no }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No bank details added.</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="contact-details" class="bg-light p-3 rounded mb-2 border border-warning small" style="display: none;">
+                        <strong class="d-block mb-1">Contact for Payment:</strong>
+                        <i class="bi bi-whatsapp text-success me-1"></i> {{ settings.shop_contacts }}
+                    </div>
+
+                    <button onclick="placeOrder()" id="orderBtn" class="btn btn-success w-100 rounded-pill fw-bold py-2 mt-2">Place Order Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="trackModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-search me-2"></i>Track Order</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-muted">Enter the Order ID (e.g. 0005)</p>
+                    <div class="input-group mb-4">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-hash"></i></span>
+                        <input type="text" id="trackInput" class="form-control border-start-0" maxlength="10" placeholder="0001" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <button onclick="trackOrder()" class="btn btn-primary px-4">Check</button>
+                    </div>
+
+                    <div id="trackResult" style="display: none; text-align: left;">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">Status: <span id="statusText" class="text-primary"></span></h5>
+                        
+                        <div id="cancelReasonBox" class="alert alert-danger mb-3" style="display: none;">
+                            <strong>Reason:</strong> <span id="cancelReasonText"></span>
+                        </div>
+
+                        <div class="track-step" id="step-pending">
+                            <div class="track-icon"><i class="bi bi-hourglass-split"></i></div>
+                            <div><strong>Pending</strong><br><small>Order received</small></div>
+                        </div>
+                        <div class="track-step" id="step-processing">
+                            <div class="track-icon"><i class="bi bi-box-seam"></i></div>
+                            <div><strong>Processing</strong><br><small>Staff is packing</small></div>
+                        </div>
+                        <div class="track-step" id="step-packed">
+                            <div class="track-icon"><i class="bi bi-check-lg"></i></div>
+                            <div><strong>Ready</strong><br><small>Ready for delivery</small></div>
+                        </div>
+                        <div class="track-step" id="step-completed">
+                            <div class="track-icon"><i class="bi bi-truck"></i></div>
+                            <div><strong>Completed</strong><br><small>Delivered successfully</small></div>
+                        </div>
+
+                        <div id="trackItemsContainer" class="mt-3 bg-light p-3 rounded">
+                            <h6 class="fw-bold border-bottom pb-2 mb-2">Order Items:</h6>
+                            <ul id="trackItemsList" class="list-group list-group-flush bg-transparent small"></ul>
+                        </div>
+                    </div>
+                    <div id="trackError" class="text-danger fw-bold mt-3" style="display: none;">Order not found!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container">
+        <div id="shopToast" class="custom-toast">
+            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+            <div><h6 class="mb-0 fw-bold">Added to Cart!</h6></div>
+        </div>
+        <div id="errorToast" class="custom-toast" style="border-left-color: #dc3545;">
+            <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+            <div><h6 class="mb-0 fw-bold">Alert!</h6><small id="errorMsg"></small></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let cart = JSON.parse(localStorage.getItem('sbd_cart')) || [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartUI();
+        });
+
+        function togglePaymentInfo() {
+            const mode = document.getElementById('payment-mode').value;
+            document.getElementById('bank-details').style.display = (mode === 'Online Payment') ? 'block' : 'none';
+            document.getElementById('contact-details').style.display = (mode === 'Pay Later') ? 'block' : 'none';
+        }
+
+        // --- TRACK ORDER JS ---
+        function trackOrder() {
+            let inputId = document.getElementById('trackInput').value;
+            if(!inputId) return;
+            let numericId = parseInt(inputId);
+
+            fetch('/api/track_order/' + numericId)
+            .then(res => res.json())
+            .then(data => {
+                const resDiv = document.getElementById('trackResult');
+                const errDiv = document.getElementById('trackError');
+                const itemsList = document.getElementById('trackItemsList');
+                const cancelBox = document.getElementById('cancelReasonBox');
+                
+                if(data.found) {
+                    errDiv.style.display = 'none';
+                    resDiv.style.display = 'block';
+                    document.getElementById('statusText').innerText = data.status;
+
+                    if(data.status === 'Cancelled') {
+                        cancelBox.style.display = 'block';
+                        document.getElementById('cancelReasonText').innerText = data.reason || "Cancelled by Admin";
+                    } else {
+                        cancelBox.style.display = 'none';
+                    }
+
+                    itemsList.innerHTML = '';
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            itemsList.innerHTML += `<li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>${item.name}</span> <span class="badge bg-secondary rounded-pill">x${item.qty}</span>
+                            </li>`;
+                        });
+                    } else {
+                        itemsList.innerHTML = '<li class="list-group-item bg-transparent text-muted">No details.</li>';
+                    }
+
+                    document.querySelectorAll('.track-step').forEach(el => el.classList.remove('active'));
+                    if(data.status === 'Pending') document.getElementById('step-pending').classList.add('active');
+                    if(data.status === 'Processing') document.getElementById('step-processing').classList.add('active');
+                    if(data.status === 'Packed') document.getElementById('step-packed').classList.add('active');
+                    if(data.status === 'Completed') document.getElementById('step-completed').classList.add('active');
+                    
+                    if(data.status === 'Processing') document.getElementById('step-pending').classList.add('active');
+                    if(data.status === 'Packed') {
+                        document.getElementById('step-pending').classList.add('active');
+                        document.getElementById('step-processing').classList.add('active');
+                    }
+                    if(data.status === 'Completed') {
+                        document.getElementById('step-pending').classList.add('active');
+                        document.getElementById('step-processing').classList.add('active');
+                        document.getElementById('step-packed').classList.add('active');
+                    }
+                } else {
+                    resDiv.style.display = 'none';
+                    errDiv.style.display = 'block';
+                    errDiv.innerText = "Order not found!";
+                }
+            });
+        }
+
+        // --- FILTER PRODUCTS JS ---
+        function filterProducts(inputId) {
+            let input = document.getElementById(inputId).value.toLowerCase();
+            let cards = document.getElementsByClassName('product-item');
+            for (let i = 0; i < cards.length; i++) {
+                let name = cards[i].getAttribute('data-name');
+                if(name.includes(input)) cards[i].style.display = "";
+                else cards[i].style.display = "none";
+            }
+        }
+
+        // --- CART JS ---
+        function addToCart(idStr, name, priceStr, maxStockStr) {
+            // Convert string inputs back to numbers
+            let id = parseInt(idStr);
+            let price = parseFloat(priceStr);
+            let maxStock = parseInt(maxStockStr);
+
+            let qtyInput = document.getElementById('qty-' + id);
+            let qty = parseInt(qtyInput.value);
+            if(isNaN(qty) || qty < 1) return showError("Invalid Qty");
+            
+            let existing = cart.find(item => item.id === id);
+            let currentInCart = existing ? existing.qty : 0;
+            if((currentInCart + qty) > maxStock) return showError(`Only ${maxStock} items left.`);
+
+            if (existing) existing.qty += qty;
+            else cart.push({ id, name, price, qty: qty });
+            
+            qtyInput.value = 1;
+            saveCart();
+            updateCartUI();
+            showToast("Added to Cart");
+        }
+
+        function updateCartUI() {
+            let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cart-count-desk').innerText = totalQty;
+            document.getElementById('cart-count-mob').innerText = totalQty;
+            
+            let html = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                let lineTotal = item.price * item.qty;
+                total += lineTotal;
+                html += `<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                            <div><span class="fw-bold text-dark">${item.name}</span> <small class="text-muted ms-1">x${item.qty}</small></div>
+                            <div><span class="fw-bold me-2">Rs. ${lineTotal}</span><i class="bi bi-trash text-danger" onclick="removeFromCart(${index})" style="cursor:pointer"></i></div>
+                         </div>`;
+            });
+            document.getElementById('cart-items').innerHTML = cart.length ? html : '<div class="text-center py-4 text-muted"><i class="bi bi-cart-x fs-1 opacity-50"></i><p class="mt-2">Your cart is empty</p></div>';
+            document.getElementById('cart-total').innerText = 'Rs. ' + total.toLocaleString();
+        }
+
+        function removeFromCart(index) { 
+            cart.splice(index, 1); 
+            saveCart();
+            updateCartUI(); 
+        }
+
+        function saveCart() { localStorage.setItem('sbd_cart', JSON.stringify(cart)); }
+
+        function showToast(msg) {
+            const t = document.getElementById('shopToast');
+            t.querySelector('h6').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function showError(msg) {
+            const t = document.getElementById('errorToast');
+            document.getElementById('errorMsg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function placeOrder() {
+            if(cart.length === 0) return showError("Cart is empty!");
+            
+            let name = document.getElementById('cust-name').value;
+            let phone = document.getElementById('cust-phone').value;
+            let email = document.getElementById('cust-email').value;
+            let address = document.getElementById('cust-address').value;
+            let payment = document.getElementById('payment-mode').value;
+
+            if(!name || !phone || !email || !address) return showError("Fill all details including Email!");
+
+            const btn = document.getElementById('orderBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            btn.disabled = true;
+
+            fetch('/place_order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cart: cart,
+                    customer: { name, phone, email, address, payment_mode: payment }
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = 'Place Order Now';
+                btn.disabled = false;
+                if(data.success) {
+                    alert("Order Placed Successfully!\nTracking ID: " + data.order_id + "\n(Check email for details)");
+                    cart = [];
+                    saveCart();
+                    updateCartUI();
+                    location.reload(); 
+                } else {
+                    showError(data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

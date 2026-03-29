@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Report - Sarhad Book Depot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .bg-custom-sidebar { background-color: #103554; }
+        #wrapper { overflow-x: hidden; display: flex; }
+        #page-content-wrapper { width: 100%; margin-left: 16rem; transition: margin 0.25s ease-out; }
+        @media (max-width: 768px) { #page-content-wrapper { margin-left: 0; } }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    
+    {% include 'admin_sidebar.html' %}
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-white py-3 px-4 shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-dark me-3" id="sidebarToggle"><i class="bi bi-list fs-5"></i></button>
+                <h4 class="m-0 fw-bold">Salary Report</h4>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm text-white rounded-pill px-3">Logout</a>
+        </nav>
+
+        <div class="container-fluid px-4">
+            
+            <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Note:</strong> Salary is calculated based on a 30-day month. Only <strong>'Absent'</strong> days cause deductions. <strong>'Leaves'</strong> are considered paid.
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-cash-stack me-2"></i> Monthly Payroll</h5>
+                    
+                    <div class="text-muted small">Current Month</div>
+                </div>
+                
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th class="ps-4 py-3">Staff Name</th>
+                                <th class="py-3">Role</th>
+                                <th class="text-center py-3">Present</th>
+                                <th class="text-center bg-danger bg-opacity-50 py-3">Absent</th>
+                                <th class="text-center bg-warning text-dark bg-opacity-50 py-3">Leaves</th>
+                                <th class="py-3">Basic Salary</th>
+                                <th class="text-danger py-3">Deduction</th>
+                                <th class="bg-success text-white py-3">Net Pay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in report %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ row.name }}</td>
+                                <td class="text-muted small text-uppercase">{{ row.role }}</td>
+                                
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">{{ row.present }}</span>
+                                </td>
+                                <td class="text-center fw-bold text-danger bg-danger bg-opacity-10">{{ row.absent }}</td>
+                                <td class="text-center fw-bold text-warning bg-warning bg-opacity-10">{{ row.leaves }}</td>
+                                
+                                <td>Rs. {{ "{:,.0f}".format(row.basic_salary) }}</td>
+                                
+                                <td class="text-danger fw-bold">
+                                    - Rs. {{ "{:,.0f}".format(row.deduction) }}
+                                </td>
+                                
+                                <td class="bg-success bg-opacity-10 text-success fw-bold h6 mb-0">
+                                    Rs. {{ "{:,.0f}".format(row.net_salary) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="8" class="text-center py-5 text-muted">No salary records found for this month.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar toggle handled centrally in admin_sidebar.html
+</script>
+<script>
+    document.getElementById('sidebarToggle').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.body.classList.toggle('sb-sidenav-toggled');
+    });
+</script>
+
+</body>
+</html>
